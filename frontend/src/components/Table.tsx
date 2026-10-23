@@ -45,7 +45,7 @@ interface SeatProps {
 function Seat({ label, seat, cards, showCards, isDealer, isToAct }: SeatProps) {
   return (
     <div className={`flex flex-col items-center ${seat.folded ? "opacity-40" : ""}`}>
-      <div className="flex gap-1 -mb-3 relative z-0">
+      <div className="flex gap-1 -mb-1 relative z-0">
         {showCards && cards ? (
           cards.map((c) => <PlayingCard key={c} card={c} size="sm" />)
         ) : (
@@ -77,7 +77,10 @@ export function Table({ hand, state }: { hand: Hand; state: TableState }) {
   const villain = state.seats.find((s) => s.position !== hand.hero)!;
   const cardsOf = (s: SeatState) => hand.players.find((p) => p.position === s.position)!.cards;
   // Middle pot excludes the bets still in front of players, as in PokerTracker.
-  const centerPot = state.pot - state.seats.reduce((sum, s) => sum + s.committedThisStreet, 0);
+  // At the end of the hand, bets are swept into the pot.
+  const centerPot = state.isEnd
+    ? state.pot
+    : state.pot - state.seats.reduce((sum, s) => sum + s.committedThisStreet, 0);
   const seatProps = (s: SeatState) => ({
     seat: s,
     cards: cardsOf(s),
@@ -93,7 +96,7 @@ export function Table({ hand, state }: { hand: Hand; state: TableState }) {
       {/* Villain, top */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1">
         <Seat label="Villain" showCards={state.isEnd} {...seatProps(villain)} />
-        <Bet seat={villain} />
+        {state.isEnd ? <div className="h-6" /> : <Bet seat={villain} />}
       </div>
 
       {/* Board and pot */}
@@ -111,7 +114,7 @@ export function Table({ hand, state }: { hand: Hand; state: TableState }) {
 
       {/* Hero, bottom */}
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1">
-        <Bet seat={hero} />
+        {state.isEnd ? <div className="h-6" /> : <Bet seat={hero} />}
         <Seat label="Hero" showCards {...seatProps(hero)} />
       </div>
     </div>

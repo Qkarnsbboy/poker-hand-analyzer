@@ -21,3 +21,6 @@ build/
 
 # Vite
 .vite/
+
+# Local screenshots
+.screenshots/
