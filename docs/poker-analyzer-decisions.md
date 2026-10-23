@@ -63,7 +63,7 @@ poker_analyzer/
 | 4 | Data model | done |
 | 5 | API contract | done |
 | 6 | CLAUDE.md | done |
-| 7 | Slice 1: hardcoded hand, replay reducer, steppable table | not started |
+| 7 | Slice 1: hardcoded hand, replay reducer, steppable table | done |
 | 8 | Slice 2: hand builder | not started |
 | 9 | Slice 3: analysis panel, decision node markers | not started |
 | 10 | Style pass | not started |

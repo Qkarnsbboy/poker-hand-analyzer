@@ -17,6 +17,21 @@ Read these before building. If code and docs disagree, docs win; flag the confli
 
 FastAPI backend, React + TypeScript + Vite, Tailwind
 
+## Commands (from `frontend/`)
+
+```bash
+npm install     # one-time
+npm run dev     # dev server on :5173
+npm test        # vitest (replay reducer tests)
+npm run build   # tsc + vite build, the type-check entry point
+```
+
+## Code layout
+
+- `frontend/src/lib/hand.ts`: types mirroring `docs/data-model.json`
+- `frontend/src/lib/replay.ts`: `replayAt(hand, i)` derives table state *before* `actions[i]`; `i === actions.length` is end of hand
+- `frontend/src/data/default-hand.ts`: hardcoded default hand
+
 ## Non-goals (v1)
 
 - No live GTO solving
