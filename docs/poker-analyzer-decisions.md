@@ -177,10 +177,14 @@ street_at(i)          actions[i].street
     "sizing": null,
     "confidence": "medium"
   },
-  "reasoning": [
+  "theory": [
     "You're getting 3:1, so you need 25% equity to call.",
     "Villain's raise range here is mostly two pair and sets.",
     "Your overpair is behind most of it but has outs."
+  ],
+  "exploitative": [
+    "Villain is passive, so his raises are weighted toward value.",
+    "Passive players rarely bluff-raise the flop."
   ],
   "what_would_change_this": "If villain were aggressive, his raise range widens and this becomes a clear call."
 }
@@ -191,7 +195,7 @@ street_at(i)          actions[i].street
 - **Structured fields, not one blob of text.** The wireframe has a colored recommendation separate from the text.
 - **`confidence` is a closed set:** high, medium, low.
 - **`sizing` is null** unless the action is bet or raise.
-- **`reasoning` is an array** of 3 to 4 bullets.
+- **Reasoning is split into `theory` and `exploitative` arrays**, 2 to 4 bullets each, matching the two boxes in the wireframe. Replaced the single `reasoning` array.
 - **`what_would_change_this`** is kept. It makes the output read like a coach, not a verdict.
 - **Math context goes into the LLM prompt on the backend** (pot, to_call, pot odds, SPR). The LLM never does arithmetic itself.
 - **Math is not returned to the frontend**, because the wireframe does not show odds. The LLM can still cite numbers in its reasoning text. Easy to add a stats strip later.

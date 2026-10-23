@@ -36,10 +36,14 @@ Called when the replayer lands on a hero decision node.
     "sizing": null,
     "confidence": "medium"
   },
-  "reasoning": [
+  "theory": [
     "You're getting 3:1, so you need 25% equity to call.",
     "Villain's raise range here is mostly two pair and sets.",
     "Your overpair is behind most of it but has outs."
+  ],
+  "exploitative": [
+    "Villain is passive, so his raises are weighted toward value.",
+    "Passive players rarely bluff-raise the flop."
   ],
   "what_would_change_this": "If villain were aggressive, his raise range widens and this becomes a clear call."
 }
@@ -48,7 +52,8 @@ Called when the replayer lands on a hero decision node.
 - `recommendation.action`: fold, check, call, bet, raise
 - `sizing`: total amount (same rule as the data model), `null` unless the action is bet or raise
 - `confidence`: high, medium, low
-- `reasoning`: 3 to 4 strings
+- `theory`: 2 to 4 strings, the balanced/GTO view (ranges, pot odds, blockers)
+- `exploitative`: 2 to 4 strings, adjustments based on villain tendencies and `hand.notes`
 - `action_index` is echoed back so the frontend can drop stale responses
 
 ## `POST /analyze-hand`
