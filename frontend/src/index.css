@@ -131,3 +131,13 @@
     @apply h-full bg-page;
   }
 }
+
+@layer utilities {
+  /* Scrolls with wheel/trackpad but shows no scrollbar. */
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}

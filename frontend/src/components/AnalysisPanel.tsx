@@ -56,7 +56,7 @@ function Accordion({ title, items }: { title: string; items: string[] }) {
 export function AnalysisPanel({ analysis }: { analysis: AnalyzeResponse | null }) {
   if (!analysis) return null; // empty at non-decision nodes
   return (
-    <div className="absolute inset-4 flex flex-col gap-3 overflow-y-auto">
+    <div className="absolute inset-4 flex flex-col gap-3 overflow-y-auto no-scrollbar">
       <ActionBox rec={analysis.recommendation} />
       <Accordion title="Theory" items={analysis.theory} />
       <Accordion title="Exploitative" items={analysis.exploitative} />
