@@ -19,7 +19,10 @@ const base =
   "hover:bg-raised-hover active:from-black/15 active:to-white/5 " +
   "disabled:opacity-35 disabled:hover:bg-raised";
 const btn = `${base} border-line-strong text-ink-dim`;
-const btnActive = `${base} border-accent text-accent`;
+// Current street: pressed in, like a held-down button.
+const btnActive =
+  "flex items-center justify-center rounded-md border border-accent bg-page text-accent " +
+  "shadow-[inset_0_2px_6px_rgba(0,0,0,0.6)] cursor-default";
 
 const Icon = ({ children }: { children: ReactNode }) => (
   <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor" aria-hidden>
@@ -73,6 +76,7 @@ export function Controls({ index, last, street, streetStarts, playing, onPlay, o
               className={`${j.street === street ? btnActive : btn} h-9 text-base font-bold uppercase tracking-wide`}
               onClick={() => start !== null && onSeek(start)}
               disabled={start === null}
+              aria-current={j.street === street ? "step" : undefined}
               title={`${j.label} (${j.key})`}
             >
               {j.label}
