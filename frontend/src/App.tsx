@@ -3,6 +3,7 @@ import { AnalysisPanel } from "./components/AnalysisPanel";
 import { Controls } from "./components/Controls";
 import { Table } from "./components/Table";
 import { defaultHand, DEFAULT_INDEX } from "./data/default-hand";
+import { mockFromUrl } from "./data/mock-analysis";
 import type { Street } from "./lib/hand";
 import { STREETS } from "./lib/hand";
 import { replayAt, streetStartIndex } from "./lib/replay";
@@ -97,8 +98,8 @@ export default function App() {
               onSeek={seek}
             />
           </main>
-          <aside className="w-2/5 rounded-2xl border border-line bg-panel p-4">
-            <AnalysisPanel isDecisionNode={state.isDecisionNode} />
+          <aside className="w-2/5 relative rounded-2xl border border-line bg-panel">
+            <AnalysisPanel analysis={state.isDecisionNode ? mockFromUrl() : null} />
           </aside>
         </div>
       </div>
