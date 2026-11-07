@@ -14,11 +14,11 @@ function ActionBox({ rec }: { rec: AnalyzeResponse["recommendation"] }) {
     <div
       className={`${ACTION_STYLE[rec.action]} rounded-2xl border-2 text-white flex flex-col items-center justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_2px_8px_rgba(0,0,0,0.3)]`}
     >
-      <div className="text-5xl font-black uppercase tracking-wider drop-shadow">
+      <div className="text-4xl font-black uppercase tracking-wider drop-shadow">
         {rec.action}
         {rec.sizing !== null && <span className="ml-3">${rec.sizing}</span>}
       </div>
-      <div className="mt-2 text-sm font-semibold uppercase tracking-wide text-white/80">{rec.confidence} confidence</div>
+      <div className="mt-1 text-xs font-semibold uppercase tracking-wide text-white/80">{rec.confidence} confidence</div>
     </div>
   );
 }
@@ -44,7 +44,7 @@ function ReasonBox({ title, items }: { title: string; items: string[] }) {
 export function AnalysisPanel({ analysis }: { analysis: AnalyzeResponse | null }) {
   if (!analysis) return null; // empty at non-decision nodes
   return (
-    <div className="absolute inset-4 grid grid-rows-3 gap-3">
+    <div className="absolute inset-4 grid grid-rows-[2fr_3fr_3fr] gap-3">
       <ActionBox rec={analysis.recommendation} />
       <ReasonBox title="Theory" items={analysis.theory} />
       <ReasonBox title="Exploitative" items={analysis.exploitative} />
