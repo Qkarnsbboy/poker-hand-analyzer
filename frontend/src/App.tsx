@@ -8,6 +8,8 @@ import { STREETS } from "./lib/hand";
 import { replayAt, streetStartIndex } from "./lib/replay";
 import { applyTheme, loadTheme, THEMES, type ThemeId } from "./lib/themes";
 
+const PLAY_INTERVAL_MS = 1000;
+
 const headerBtn = "rounded-lg border border-line-strong px-3 py-1 text-sm disabled:opacity-40";
 
 export default function App() {
@@ -23,17 +25,36 @@ export default function App() {
     [hand],
   );
 
-  const seek = (i: number) => setIndex(Math.max(0, Math.min(i, last)));
+  // Any manual navigation stops autoplay.
+  const seek = (i: number) => {
+    setPlaying(false);
+    setIndex(Math.max(0, Math.min(i, last)));
+  };
+
+  // Autoplay: advance one action per tick, stop at the end.
+  const [playing, setPlaying] = useState(false);
+  useEffect(() => {
+    if (!playing) return;
+    if (index >= last) {
+      setPlaying(false);
+      return;
+    }
+    const t = setTimeout(() => setIndex((i) => i + 1), PLAY_INTERVAL_MS);
+    return () => clearTimeout(t);
+  }, [playing, index, last]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "ArrowRight") setIndex((i) => Math.min(i + 1, last));
-      else if (e.key === "ArrowLeft") setIndex((i) => Math.max(i - 1, 0));
-      else if (e.key === "Home") setIndex(0);
-      else if (e.key === "End") setIndex(last);
+      if (e.target instanceof HTMLSelectElement) return;
+      const stop = () => setPlaying(false);
+      if (e.key === " ") setPlaying((p) => !p);
+      else if (e.key === "ArrowRight") (stop(), setIndex((i) => Math.min(i + 1, last)));
+      else if (e.key === "ArrowLeft") (stop(), setIndex((i) => Math.max(i - 1, 0)));
+      else if (e.key === "Home") (stop(), setIndex(0));
+      else if (e.key === "End") (stop(), setIndex(last));
       else if (e.key >= "1" && e.key <= "4") {
         const start = streetStarts[STREETS[Number(e.key) - 1]];
-        if (start !== null) setIndex(start);
+        if (start !== null) (stop(), setIndex(start));
       } else return;
       e.preventDefault();
     };
@@ -65,7 +86,16 @@ export default function App() {
         <div className="flex gap-5">
           <main className="w-3/5 rounded-2xl border border-line bg-panel p-5 space-y-5">
             <Table hand={hand} state={state} />
-            <Controls index={index} last={last} street={state.street} streetStarts={streetStarts} onSeek={seek} />
+            <Controls
+              index={index}
+              last={last}
+              street={state.street}
+              streetStarts={streetStarts}
+              playing={playing}
+              onPlay={() => setPlaying(true)}
+              onPause={() => setPlaying(false)}
+              onSeek={seek}
+            />
           </main>
           <aside className="w-2/5 rounded-2xl border border-line bg-panel p-4">
             <AnalysisPanel isDecisionNode={state.isDecisionNode} />

@@ -24,6 +24,7 @@ npm install     # one-time
 npm run dev     # dev server on :5173
 npm test        # vitest (replay reducer tests)
 npm run build   # tsc + vite build, the type-check entry point
+npm run screenshot  # Playwright screenshots of the running dev server into .screenshots/
 ```
 
 ## Code layout
@@ -31,6 +32,7 @@ npm run build   # tsc + vite build, the type-check entry point
 - `frontend/src/lib/hand.ts`: types mirroring `docs/data-model.json`
 - `frontend/src/lib/replay.ts`: `replayAt(hand, i)` derives table state *before* `actions[i]`; `i === actions.length` is end of hand
 - `frontend/src/data/default-hand.ts`: hardcoded default hand
+- Themes: CSS variables per `[data-theme]` in `frontend/src/index.css`, list in `frontend/src/lib/themes.ts`. Use theme color classes (`bg-raised`, `text-ink`, `border-line`...), not raw Tailwind grays.
 
 ## Non-goals (v1)
 
