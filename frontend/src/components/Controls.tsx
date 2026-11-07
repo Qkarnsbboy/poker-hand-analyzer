@@ -37,6 +37,7 @@ const ICONS = {
 };
 
 const JUMPS: { street: Street; label: string; key: string }[] = [
+  { street: "preflop", label: "Preflop", key: "1" },
   { street: "flop", label: "Flop", key: "2" },
   { street: "turn", label: "Turn", key: "3" },
   { street: "river", label: "River", key: "4" },
@@ -63,7 +64,7 @@ export function Controls({ index, last, street, streetStarts, playing, onPlay, o
           </button>
         ))}
       </div>
-      <div className="grid grid-cols-3 gap-1.5">
+      <div className="grid grid-cols-4 gap-1.5">
         {JUMPS.map((j) => {
           const start = streetStarts[j.street];
           return (
