@@ -44,7 +44,7 @@ function Accordion({ title, items }: { title: string; items: string[] }) {
           {items.map((t) => (
             <li key={t} className="flex gap-2">
               <span className="text-accent">•</span>
-              <span>{t}</span>
+              <span className="min-w-0 [overflow-wrap:anywhere]">{t}</span>
             </li>
           ))}
         </ul>
