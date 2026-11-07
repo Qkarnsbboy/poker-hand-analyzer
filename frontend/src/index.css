@@ -2,10 +2,132 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Themes. Keep the list in sync with src/lib/themes.ts. */
+:root,
+[data-theme="midnight"] {
+  --page: 10 10 10;
+  --surface: 23 23 23;
+  --panel: 30 30 30;
+  --raised: 38 38 38;
+  --raised-hover: 64 64 64;
+  --line: 64 64 64;
+  --line-strong: 82 82 82;
+  --ink: 245 245 245;
+  --ink-dim: 212 212 212;
+  --ink-faint: 115 115 115;
+  --accent: 251 191 36;
+  --felt-1: 47 125 74;
+  --felt-2: 29 90 51;
+  --felt-3: 20 67 42;
+  --rail: 10 10 10;
+  --plate: 23 23 23;
+  --plate-ink: 245 245 245;
+}
+
+[data-theme="charcoal"] {
+  --page: 58 58 60;
+  --surface: 74 74 77;
+  --panel: 66 66 69;
+  --raised: 44 44 46;
+  --raised-hover: 30 30 32;
+  --line: 92 92 96;
+  --line-strong: 112 112 117;
+  --ink: 245 245 245;
+  --ink-dim: 222 222 222;
+  --ink-faint: 165 165 170;
+  --accent: 132 204 22;
+  --felt-1: 78 98 48;
+  --felt-2: 56 74 32;
+  --felt-3: 38 52 22;
+  --rail: 20 20 22;
+  --plate: 20 20 22;
+  --plate-ink: 245 245 245;
+}
+
+[data-theme="slate"] {
+  --page: 30 41 59;
+  --surface: 41 53 72;
+  --panel: 51 65 85;
+  --raised: 71 85 105;
+  --raised-hover: 100 116 139;
+  --line: 71 85 105;
+  --line-strong: 100 116 139;
+  --ink: 241 245 249;
+  --ink-dim: 203 213 225;
+  --ink-faint: 148 163 184;
+  --accent: 56 189 248;
+  --felt-1: 34 120 80;
+  --felt-2: 22 92 60;
+  --felt-3: 15 70 45;
+  --rail: 15 23 42;
+  --plate: 15 23 42;
+  --plate-ink: 241 245 249;
+}
+
+[data-theme="navy"] {
+  --page: 13 17 33;
+  --surface: 20 26 48;
+  --panel: 27 35 64;
+  --raised: 35 45 80;
+  --raised-hover: 50 62 105;
+  --line: 45 55 95;
+  --line-strong: 65 78 125;
+  --ink: 236 240 255;
+  --ink-dim: 190 198 225;
+  --ink-faint: 125 135 170;
+  --accent: 167 139 250;
+  --felt-1: 30 98 120;
+  --felt-2: 20 72 92;
+  --felt-3: 12 50 66;
+  --rail: 8 10 22;
+  --plate: 8 10 22;
+  --plate-ink: 236 240 255;
+}
+
+[data-theme="light"] {
+  --page: 229 231 235;
+  --surface: 249 250 251;
+  --panel: 243 244 246;
+  --raised: 255 255 255;
+  --raised-hover: 229 231 235;
+  --line: 209 213 219;
+  --line-strong: 156 163 175;
+  --ink: 17 24 39;
+  --ink-dim: 55 65 81;
+  --ink-faint: 107 114 128;
+  --accent: 217 119 6;
+  --felt-1: 47 125 74;
+  --felt-2: 29 90 51;
+  --felt-3: 20 67 42;
+  --rail: 55 65 81;
+  --plate: 31 41 55;
+  --plate-ink: 249 250 251;
+}
+
+[data-theme="casino"] {
+  --page: 236 228 210;
+  --surface: 252 248 238;
+  --panel: 246 240 226;
+  --raised: 255 253 248;
+  --raised-hover: 238 228 205;
+  --line: 222 208 180;
+  --line-strong: 180 155 115;
+  --ink: 40 30 20;
+  --ink-dim: 90 70 50;
+  --ink-faint: 140 120 95;
+  --accent: 153 27 27;
+  --felt-1: 22 112 62;
+  --felt-2: 14 86 46;
+  --felt-3: 8 62 32;
+  --rail: 92 50 25;
+  --plate: 40 25 15;
+  --plate-ink: 250 240 220;
+}
+
 @layer base {
   html,
   body,
   #root {
-    @apply h-full bg-neutral-950;
+    @apply h-full bg-page;
   }
 }

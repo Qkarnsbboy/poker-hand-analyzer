@@ -56,11 +56,11 @@ function Seat({ label, seat, cards, showCards, isDealer, isToAct }: SeatProps) {
         )}
       </div>
       <div
-        className={`relative z-10 min-w-36 px-6 py-1.5 rounded-xl bg-neutral-900 border-2 text-center ${
-          isToAct ? "border-amber-400 shadow-[0_0_16px_rgba(251,191,36,0.5)]" : "border-neutral-600"
+        className={`relative z-10 min-w-36 px-6 py-1.5 rounded-xl bg-plate text-plate-ink border-2 text-center ${
+          isToAct ? "border-accent shadow-[0_0_16px_rgb(var(--accent)/0.5)]" : "border-line-strong"
         }`}
       >
-        <div className="text-sm text-neutral-300">{label}</div>
+        <div className="text-sm opacity-75">{label}</div>
         <div className="text-lg font-bold">${seat.stack}</div>
         {isDealer && (
           <div className="absolute -right-4 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white text-neutral-900 text-xs font-bold flex items-center justify-center border-2 border-neutral-400">
@@ -91,7 +91,7 @@ export function Table({ hand, state }: { hand: Hand; state: TableState }) {
   return (
     <div className="relative w-full aspect-[16/11] select-none">
       {/* Felt */}
-      <div className="absolute inset-x-[3%] top-[17%] bottom-[17%] rounded-[50%] border-[10px] border-neutral-950 bg-[radial-gradient(ellipse_at_center,#2f7d4a_0%,#1d5a33_60%,#14432a_100%)] shadow-[inset_0_0_40px_rgba(0,0,0,0.6),0_8px_30px_rgba(0,0,0,0.5)]" />
+      <div className="absolute inset-x-[3%] top-[17%] bottom-[17%] rounded-[50%] border-[10px] border-rail bg-[radial-gradient(ellipse_at_center,rgb(var(--felt-1))_0%,rgb(var(--felt-2))_60%,rgb(var(--felt-3))_100%)] shadow-[inset_0_0_40px_rgba(0,0,0,0.6),0_8px_30px_rgba(0,0,0,0.5)]" />
 
       {/* Villain, top */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1">

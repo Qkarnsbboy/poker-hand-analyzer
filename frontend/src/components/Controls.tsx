@@ -12,7 +12,7 @@ interface Props {
 const LABELS: Record<Street, string> = { preflop: "Pre", flop: "Flop", turn: "Turn", river: "River" };
 
 const btn =
-  "rounded-lg border border-neutral-600 bg-neutral-800 py-2 font-semibold hover:bg-neutral-700 disabled:opacity-30 disabled:hover:bg-neutral-800";
+  "rounded-lg border border-line-strong bg-raised py-2 font-semibold hover:bg-raised-hover disabled:opacity-30 disabled:hover:bg-raised";
 
 export function Controls({ index, last, street, streetStarts, onSeek }: Props) {
   return (
@@ -29,7 +29,7 @@ export function Controls({ index, last, street, streetStarts, onSeek }: Props) {
           return (
             <button
               key={s}
-              className={`${btn} ${s === street ? "border-amber-400 text-amber-300" : ""}`}
+              className={`${btn} ${s === street ? "border-accent text-accent" : ""}`}
               onClick={() => start !== null && onSeek(start)}
               disabled={start === null}
               title={`Key ${i + 1}`}
@@ -39,7 +39,7 @@ export function Controls({ index, last, street, streetStarts, onSeek }: Props) {
           );
         })}
       </div>
-      <div className="text-xs text-neutral-500 text-center">← → step · Home / End · 1–4 jump to street</div>
+      <div className="text-xs text-ink-faint text-center">← → step · Home / End · 1–4 jump to street</div>
     </div>
   );
 }
