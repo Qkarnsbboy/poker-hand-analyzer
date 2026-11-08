@@ -1,19 +1,19 @@
 import { useState } from "react";
 import type { AnalyzeResponse, RecommendedAction } from "../lib/analysis";
 
-// Fixed colors, the same in every theme: green = call/check, blue = fold, red = bet/raise.
+// Fixed colors, the same in every theme: green = call, grey = check, blue = fold, red = bet/raise.
 const ACTION_STYLE: Record<RecommendedAction, string> = {
   call: "bg-green-600 border-green-400",
-  check: "bg-green-600 border-green-400",
+  check: "bg-slate-500 border-slate-300",
   fold: "bg-blue-600 border-blue-400",
   bet: "bg-red-600 border-red-400",
   raise: "bg-red-600 border-red-400",
 };
 
-function ActionBox({ rec }: { rec: AnalyzeResponse["recommendation"] }) {
+export function ActionBox({ rec, colorClass }: { rec: AnalyzeResponse["recommendation"]; colorClass?: string }) {
   return (
     <div
-      className={ACTION_STYLE[rec.action] + " h-28 shrink-0 rounded-2xl border-2 text-white flex flex-col items-center justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_2px_8px_rgba(0,0,0,0.3)]"}
+      className={(colorClass ?? ACTION_STYLE[rec.action]) + " h-28 shrink-0 rounded-2xl border-2 text-white flex flex-col items-center justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_2px_8px_rgba(0,0,0,0.3)]"}
     >
       <div className="text-4xl font-black uppercase tracking-wider drop-shadow">
         {rec.action}
