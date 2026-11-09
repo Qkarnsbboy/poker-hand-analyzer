@@ -141,7 +141,7 @@ function ActionControls({ turn, who, onAct }: { turn: Turn; who: string; onAct: 
             }}
             aria-label={turn.raiseKind + " amount"}
           />
-          <span className="text-xs font-semibold text-ink-dim">{unit === "bb" ? "BB" : "$"}</span>
+          <span className="w-5 shrink-0 text-center text-xs font-semibold text-ink-dim">{unit === "bb" ? "BB" : "$$"}</span>
         </form>
       )}
       {turn.raiseKind && (
