@@ -105,6 +105,20 @@ function ActionControls({ turn, who, onAct }: { turn: Turn; who: string; onAct: 
   return (
     <div className="mt-2 pt-2 border-t border-line space-y-1.5">
       <div className="text-sm font-semibold text-accent">{who} to act</div>
+      {turn.toCall > 0 ? (
+        <>
+          <button type="button" className={actionBtn + " bg-blue-600 w-full"} onClick={() => onAct({ ...base, action: "fold" })}>
+            Fold
+          </button>
+          <button type="button" className={actionBtn + " bg-green-600 w-full"} onClick={() => onAct({ ...base, action: "call", amount: turn.currentBet })}>
+            Call {format(turn.toCall)}
+          </button>
+        </>
+      ) : (
+        <button type="button" className={actionBtn + " bg-slate-500 w-full"} onClick={() => onAct({ ...base, action: "check" })}>
+          Check
+        </button>
+      )}
       {turn.raiseKind && (
         <form
           className="flex items-center gap-1.5"
@@ -129,20 +143,6 @@ function ActionControls({ turn, who, onAct }: { turn: Turn; who: string; onAct: 
             aria-label={turn.raiseKind + " amount"}
           />
         </form>
-      )}
-      {turn.toCall > 0 ? (
-        <>
-          <button type="button" className={actionBtn + " bg-blue-600 w-full"} onClick={() => onAct({ ...base, action: "fold" })}>
-            Fold
-          </button>
-          <button type="button" className={actionBtn + " bg-green-600 w-full"} onClick={() => onAct({ ...base, action: "call", amount: turn.currentBet })}>
-            Call {format(turn.toCall)}
-          </button>
-        </>
-      ) : (
-        <button type="button" className={actionBtn + " bg-slate-500 w-full"} onClick={() => onAct({ ...base, action: "check" })}>
-          Check
-        </button>
       )}
       {turn.raiseKind && (
         <button type="button" className={actionBtn + " bg-red-900 w-full"} onClick={() => submitRaise(turn.maxAmount)}>
