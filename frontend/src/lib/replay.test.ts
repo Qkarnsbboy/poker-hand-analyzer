@@ -51,6 +51,12 @@ describe("replayAt", () => {
     expect(t.board).toHaveLength(5);
   });
 
+  it("shows the full board at the end of an all-in hand", () => {
+    const allIn = { ...defaultHand, actions: defaultHand.actions.slice(0, 3) };
+    expect(replayAt(allIn, 3).board).toHaveLength(5);
+    expect(replayAt(allIn, 2).board).toHaveLength(0);
+  });
+
   it("clamps out-of-range indexes", () => {
     expect(replayAt(defaultHand, -5).index).toBe(0);
     expect(replayAt(defaultHand, 99).index).toBe(defaultHand.actions.length);

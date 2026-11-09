@@ -108,7 +108,8 @@ export function replayAt(hand: Hand, index: number): TableState {
     index: i,
     street: shownStreet,
     pot,
-    board: boardThrough(hand, shownStreet),
+    // An all-in hand runs out the board with no actions on the later streets.
+    board: boardThrough(hand, isEnd && !seats.some((s) => s.folded) ? "river" : shownStreet),
     seats,
     toAct,
     toCall: toAct ? currentBet - seat(toAct).committedThisStreet : 0,

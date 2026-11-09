@@ -32,6 +32,7 @@ npm run screenshot  # Playwright screenshots of the running dev server into .scr
 - `frontend/src/lib/hand.ts`: types mirroring `docs/data-model.json`
 - `frontend/src/lib/replay.ts`: `replayAt(hand, i)` derives table state *before* `actions[i]`; `i === actions.length` is end of hand
 - `frontend/src/data/default-hand.ts`: hardcoded default hand
+- `frontend/src/lib/builder.ts`: hand entry rules (whose turn, legal actions, what's missing); `frontend/src/lib/storage.ts`: all saved-hand persistence (localStorage)
 - Themes: CSS variables per `[data-theme]` in `frontend/src/index.css`, list in `frontend/src/lib/themes.ts`. Use theme color classes (`bg-raised`, `text-ink`, `border-line`...), not raw Tailwind grays.
 
 ## Non-goals (v1)
@@ -40,7 +41,7 @@ npm run screenshot  # Playwright screenshots of the running dev server into .scr
 - No hand history file import
 - No multiway analysis
 - No tournaments, PLO, or mixed games
-- No auth, database, saved hands, or mobile
+- No auth, database, or mobile (saved hands live in browser storage)
 - No scoring or grades
 
 ## Conventions
@@ -55,3 +56,5 @@ npm run screenshot  # Playwright screenshots of the running dev server into .scr
 ## Build approach
 
 Vertical slices, each working end to end before the next starts. Current slice and status are in the Status table in `docs/poker-analyzer-decisions.md`. Update it when a step finishes.
+
+One commit per slice, made once the slice works end to end and npm test and npm run build pass. Fold tweaks and fixes into that commit rather than committing them separately. Polish between slices goes in one batched commit. Push right after each commit.

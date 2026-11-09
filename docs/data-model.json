@@ -1,5 +1,6 @@
 {
   "id": "hand-001",
+  "name": "Example hand",
   "game": {
             "variant": "nlhe",
             "format": "cash",

@@ -35,6 +35,7 @@ export type Action =
 
 export interface Hand {
   id: string;
+  name: string;
   game: Game;
   hero: Position;
   players: Player[];

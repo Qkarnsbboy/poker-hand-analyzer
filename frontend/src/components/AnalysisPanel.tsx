@@ -53,7 +53,8 @@ function Accordion({ title, items }: { title: string; items: string[] }) {
   );
 }
 
-export function AnalysisPanel({ analysis }: { analysis: AnalyzeResponse | null }) {
+export function AnalysisPanel({ analysis, pending = false }: { analysis: AnalyzeResponse | null; pending?: boolean }) {
+  if (pending) return <div className="absolute inset-4 flex items-center justify-center text-ink-faint">Analysis coming soon</div>;
   if (!analysis) return null; // empty at non-decision nodes
   return (
     <div className="absolute inset-4 flex flex-col gap-3 overflow-y-auto no-scrollbar">

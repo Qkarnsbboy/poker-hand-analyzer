@@ -15,7 +15,7 @@ Personal project for reviewing my own poker hands. Built for my own use, not for
 - Hand history file import
 - Multiway analysis
 - Tournaments, PLO, mixed games
-- Auth, database, saved hands, mobile
+- Auth, database, mobile
 
 ### Solver (parked)
 
@@ -209,6 +209,8 @@ street_at(i)          actions[i].street
 
 ### Resolved
 
+- **Hands are saved in browser storage (localStorage).** No database or login in v1. All save and load code stays in one file so it can move to a database later.
+- **Hand entry adds `name` and both stack sizes.** Game and format are fixed, greyed-out fields (NLHE, cash).
 - **No scoring or grades in v1.** LLM grading is inconsistent. `/analyze-hand` returns post-mortem and tips only.
 - **Villain hole cards are optional.** `null` when unknown. Most hands never reach showdown.
 - **Right panel is empty at non-decision nodes.** No request is made.

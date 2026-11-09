@@ -3,6 +3,7 @@ import type { Hand } from "../lib/hand";
 // "Aces Cracked" from the wireframe: hero's AA faces a river shove on Ks Jc 3s 4h 2d.
 export const defaultHand: Hand = {
   id: "hand-001",
+  name: "Aces Cracked",
   game: { variant: "nlhe", format: "cash", sb: 2, bb: 5, ante: 0 },
   hero: "BTN",
   players: [

@@ -11,6 +11,7 @@ const SUITS: Record<string, { symbol: string; bg: string }> = {
 const SIZES = {
   md: { box: "w-12 h-16", rank: "text-4xl", suit: "text-xs" },
   sm: { box: "w-10 h-14", rank: "text-3xl", suit: "text-[10px]" },
+  xs: { box: "w-8 h-10", rank: "text-lg", suit: "text-[8px]" },
 };
 
 type Size = keyof typeof SIZES;
