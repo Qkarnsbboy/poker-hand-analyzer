@@ -13,6 +13,7 @@ import {
 } from "../lib/builder";
 import type { Draft, SlotId, Turn } from "../lib/builder";
 import type { Action, Card, Hand, Position, Street } from "../lib/hand";
+import { BigBlindProvider, formatMoney, useMoney } from "../lib/money";
 import { replayAt } from "../lib/replay";
 import { newHandId, saveHand } from "../lib/storage";
 import { PlayingCard } from "./PlayingCard";
@@ -90,7 +91,8 @@ function CardPicker({ used, activeLabel, onPick }: { used: Set<Card>; activeLabe
 const actionBtn = "rounded-md px-2 py-1.5 text-sm font-bold text-white hover:brightness-110";
 
 function ActionControls({ turn, who, onAct }: { turn: Turn; who: string; onAct: (a: Action) => void }) {
-  const [amount, setAmount] = useState(String(turn.suggested));
+  const { unit, format, toInput, fromInput } = useMoney();
+  const [amount, setAmount] = useState(String(toInput(turn.suggested)));
   const [error, setError] = useState<string | null>(null);
   const base = { street: turn.street, position: turn.position };
 
@@ -110,7 +112,7 @@ function ActionControls({ turn, who, onAct }: { turn: Turn; who: string; onAct: 
               Fold
             </button>
             <button type="button" className={actionBtn + " bg-green-600"} onClick={() => onAct({ ...base, action: "call", amount: turn.currentBet })}>
-              Call ${turn.toCall}
+              Call {format(turn.toCall)}
             </button>
           </>
         ) : (
@@ -122,14 +124,15 @@ function ActionControls({ turn, who, onAct }: { turn: Turn; who: string; onAct: 
       {turn.raiseKind && (
         <>
           <form
-            className="flex gap-1.5"
+            className="flex items-center gap-1.5"
             onSubmit={(e) => {
               e.preventDefault();
-              submitRaise(Number(amount));
+              submitRaise(fromInput(Number(amount)));
             }}
           >
+            <span className="text-xs font-semibold text-ink-dim">{unit === "bb" ? "BB" : "$"}</span>
             <input
-              className={field + " min-w-0"}
+              className={field + " !w-16 shrink-0"}
               type="number"
               step="any"
               value={amount}
@@ -139,12 +142,12 @@ function ActionControls({ turn, who, onAct }: { turn: Turn; who: string; onAct: 
               }}
               aria-label={turn.raiseKind + " amount"}
             />
-            <button type="submit" className={actionBtn + " bg-red-600 capitalize"}>
+            <button type="submit" className={actionBtn + " bg-red-600 capitalize flex-1"}>
               {turn.raiseKind}
             </button>
           </form>
           <button type="button" className={actionBtn + " bg-red-600 w-full"} onClick={() => submitRaise(turn.maxAmount)}>
-            All-in ${turn.maxAmount}
+            All-in {format(turn.maxAmount)}
           </button>
         </>
       )}
@@ -153,9 +156,9 @@ function ActionControls({ turn, who, onAct }: { turn: Turn; who: string; onAct: 
   );
 }
 
-function actionText(a: Action, allIn: boolean): string {
+function actionText(a: Action, allIn: boolean, format: (v: number) => string): string {
   const verb = a.action[0].toUpperCase() + a.action.slice(1);
-  return "amount" in a ? verb + " $" + a.amount + (allIn ? " (all-in)" : "") : verb;
+  return "amount" in a ? verb + " " + format(a.amount) + (allIn ? " (all-in)" : "") : verb;
 }
 
 export function HandBuilder({ onAnalyze }: { onAnalyze: (hand: Hand) => void }) {
@@ -163,6 +166,9 @@ export function HandBuilder({ onAnalyze }: { onAnalyze: (hand: Hand) => void }) 
   // A slot the user clicked; otherwise the picker follows the hand's flow.
   const [selected, setSelected] = useState<SlotId | null>(null);
   const [saveError, setSaveError] = useState(false);
+  const { unit } = useMoney();
+  const bb = Number(draft.bb) || 1;
+  const format = (v: number) => formatMoney(v, bb, unit);
 
   const status = useMemo(() => draftStatus(draft), [draft]);
   const activeSlot = selected ?? nextSlot(draft, status);
@@ -202,10 +208,23 @@ export function HandBuilder({ onAnalyze }: { onAnalyze: (hand: Hand) => void }) 
       return (
         <div key={i} className="flex justify-between text-sm">
           <span className="text-ink-dim">{who(a.position)}</span>
-          <span>{actionText(a, seat.stack <= 0)}</span>
+          <span>{actionText(a, seat.stack <= 0, format)}</span>
         </div>
       );
     });
+  };
+
+  // Pot through the street's latest action; null for streets not reached yet.
+  const potFor = (street: Street): number | null => {
+    if (status.kind === "setup") return null;
+    const hand = draftToHand(draft);
+    const lastOnStreet = draft.actions.map((a) => a.street).lastIndexOf(street);
+    if (lastOnStreet >= 0) return replayAt(hand, lastOnStreet + 1).pot;
+    const current =
+      turn?.street === street ||
+      (status.kind === "need-board" && status.street === street) ||
+      (status.kind === "need-hero-cards" && street === "preflop");
+    return current ? replayAt(hand, draft.actions.length).pot : null;
   };
 
   const analyze = () => {
@@ -214,20 +233,27 @@ export function HandBuilder({ onAnalyze }: { onAnalyze: (hand: Hand) => void }) 
     onAnalyze(hand);
   };
 
-  const column = (street: Street, top: ReactNode) => (
+  const column = (street: Street, top: ReactNode) => {
+    const pot = potFor(street);
+    return (
     <div className={box + " min-w-0"} key={street}>
-      <h3 className="text-center font-bold mb-2">{COLUMN_TITLES[street]}</h3>
+      <div className="flex items-baseline justify-between mb-2">
+        <h3 className="font-bold">{COLUMN_TITLES[street]}</h3>
+        {pot !== null && <span className="text-sm font-bold text-accent">Pot {format(pot)}</span>}
+      </div>
       {top}
       <div className="space-y-1 mt-2">{rows(street)}</div>
       {turn && turn.street === street && (
-        <ActionControls key={draft.actions.length} turn={turn} who={who(turn.position)} onAct={(a) => update({ actions: [...draft.actions, a] })} />
+        <ActionControls key={draft.actions.length + unit} turn={turn} who={who(turn.position)} onAct={(a) => update({ actions: [...draft.actions, a] })} />
       )}
     </div>
-  );
+    );
+  };
 
   const boardSlots = (s: Exclude<Street, "preflop">) => <div className="flex justify-center gap-1.5">{STREET_SLOTS[s].map(slot)}</div>;
 
   return (
+    <BigBlindProvider value={bb}>
     <div className="space-y-3">
       <div className={box + " grid grid-cols-[2fr_1fr_1fr_0.7fr_0.7fr_1fr_1fr] gap-3"}>
         <Field title="Hand name">
@@ -337,5 +363,6 @@ export function HandBuilder({ onAnalyze }: { onAnalyze: (hand: Hand) => void }) 
         </div>
       </div>
     </div>
+    </BigBlindProvider>
   );
 }

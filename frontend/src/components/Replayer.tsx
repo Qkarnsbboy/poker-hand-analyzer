@@ -3,6 +3,7 @@ import { defaultHand } from "../data/default-hand";
 import { mockFromUrl } from "../data/mock-analysis";
 import type { Hand, Street } from "../lib/hand";
 import { STREETS } from "../lib/hand";
+import { BigBlindProvider } from "../lib/money";
 import { replayAt, streetStartIndex } from "../lib/replay";
 import { AnalysisPanel } from "./AnalysisPanel";
 import { Controls } from "./Controls";
@@ -61,6 +62,7 @@ export function Replayer({ hand, initialIndex }: { hand: Hand; initialIndex: num
   const isMockHand = hand.id === defaultHand.id;
 
   return (
+    <BigBlindProvider value={hand.game.bb}>
     <div className="flex gap-5">
       <main className="w-3/5 rounded-2xl border border-line bg-panel p-5 space-y-5">
         <div className="text-sm font-semibold text-ink-dim">{hand.name}</div>
@@ -80,5 +82,6 @@ export function Replayer({ hand, initialIndex }: { hand: Hand; initialIndex: num
         <AnalysisPanel analysis={state.isDecisionNode && isMockHand ? mockFromUrl() : null} pending={state.isDecisionNode && !isMockHand} />
       </aside>
     </div>
+    </BigBlindProvider>
   );
 }

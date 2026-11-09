@@ -193,7 +193,7 @@ export function nextSlot(d: Draft, status: DraftStatus): SlotId | null {
 export function amountError(turn: Turn, amount: number): string | null {
   if (!Number.isFinite(amount) || amount <= 0) return "Enter an amount.";
   if (amount <= turn.currentBet) return "A raise must be more than the current bet.";
-  if (amount > turn.maxAmount) return "That's more than the effective stack ($" + turn.maxAmount + ").";
+  if (amount > turn.maxAmount) return "That's more than the effective stack.";
   return null;
 }
 

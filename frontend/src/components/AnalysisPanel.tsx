@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { AnalyzeResponse, RecommendedAction } from "../lib/analysis";
+import { useMoney } from "../lib/money";
 
 // Fixed colors, the same in every theme: green = call, grey = check, blue = fold, red = bet/raise.
 const ACTION_STYLE: Record<RecommendedAction, string> = {
@@ -11,13 +12,14 @@ const ACTION_STYLE: Record<RecommendedAction, string> = {
 };
 
 export function ActionBox({ rec, colorClass }: { rec: AnalyzeResponse["recommendation"]; colorClass?: string }) {
+  const { format } = useMoney();
   return (
     <div
       className={(colorClass ?? ACTION_STYLE[rec.action]) + " h-28 shrink-0 rounded-2xl border-2 text-white flex flex-col items-center justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_2px_8px_rgba(0,0,0,0.3)]"}
     >
       <div className="text-4xl font-black uppercase tracking-wider drop-shadow">
         {rec.action}
-        {rec.sizing !== null && <span className="ml-3">${rec.sizing}</span>}
+        {rec.sizing !== null && <span className="ml-3">{format(rec.sizing)}</span>}
       </div>
       <div className="mt-1 text-xs font-semibold uppercase tracking-wide text-white/80">{rec.confidence} confidence</div>
     </div>

@@ -1,14 +1,15 @@
 import type { Action, Card, Hand } from "../lib/hand";
 import type { SeatState, TableState } from "../lib/replay";
+import { useMoney } from "../lib/money";
 import { CardBack, EmptyCardSlot, PlayingCard } from "./PlayingCard";
 
-function betLabel(seat: SeatState): string | null {
+function betLabel(seat: SeatState, format: (v: number) => string): string | null {
   const a: Action | null = seat.lastAction;
-  if (!a) return seat.committedThisStreet ? `$${seat.committedThisStreet}` : null; // blinds
+  if (!a) return seat.committedThisStreet ? format(seat.committedThisStreet) : null; // blinds
   if (a.action === "fold") return "Fold";
   if (a.action === "check") return "Check";
   const verb = seat.allIn ? "All-in" : a.action[0].toUpperCase() + a.action.slice(1);
-  return `${verb} $${seat.committedThisStreet}`;
+  return `${verb} ${format(seat.committedThisStreet)}`;
 }
 
 function Chips() {
@@ -22,7 +23,8 @@ function Chips() {
 }
 
 function Bet({ seat }: { seat: SeatState }) {
-  const label = betLabel(seat);
+  const { format } = useMoney();
+  const label = betLabel(seat, format);
   if (!label) return <div className="h-6" />;
   const hasChips = seat.committedThisStreet > 0;
   return (
@@ -43,6 +45,7 @@ interface SeatProps {
 }
 
 function Seat({ label, seat, cards, showCards, isDealer, isToAct }: SeatProps) {
+  const { format } = useMoney();
   return (
     <div className={`flex flex-col items-center ${seat.folded ? "opacity-40" : ""}`}>
       <div className="flex gap-1 -mb-1 relative z-0">
@@ -61,7 +64,7 @@ function Seat({ label, seat, cards, showCards, isDealer, isToAct }: SeatProps) {
         }`}
       >
         <div className="text-sm opacity-75">{label}</div>
-        <div className="text-lg font-bold">${seat.stack}</div>
+        <div className="text-lg font-bold">{format(seat.stack)}</div>
         {isDealer && (
           <div className="absolute -right-4 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white text-neutral-900 text-xs font-bold flex items-center justify-center border-2 border-neutral-400">
             D
@@ -73,6 +76,7 @@ function Seat({ label, seat, cards, showCards, isDealer, isToAct }: SeatProps) {
 }
 
 export function Table({ hand, state }: { hand: Hand; state: TableState }) {
+  const { format } = useMoney();
   const hero = state.seats.find((s) => s.position === hand.hero)!;
   const villain = state.seats.find((s) => s.position !== hand.hero)!;
   const cardsOf = (s: SeatState) => hand.players.find((p) => p.position === s.position)!.cards;
@@ -108,7 +112,7 @@ export function Table({ hand, state }: { hand: Hand; state: TableState }) {
         </div>
         <div className="text-white text-center leading-tight">
           <div className="text-sm text-white/70">Pot</div>
-          <div className="text-xl font-bold">${centerPot}</div>
+          <div className="text-xl font-bold whitespace-nowrap">{format(centerPot)}</div>
         </div>
       </div>
 
