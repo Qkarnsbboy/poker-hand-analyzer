@@ -130,7 +130,6 @@ function ActionControls({ turn, who, onAct }: { turn: Turn; who: string; onAct: 
           <button type="submit" className={actionBtn + " bg-red-600 capitalize flex-1"}>
             {turn.raiseKind}
           </button>
-          {unit === "usd" && <span className="text-xs font-semibold text-ink-dim">$</span>}
           <input
             className={field + " !w-12 !px-1 text-center shrink-0"}
             type="number"
@@ -142,7 +141,7 @@ function ActionControls({ turn, who, onAct }: { turn: Turn; who: string; onAct: 
             }}
             aria-label={turn.raiseKind + " amount"}
           />
-          {unit === "bb" && <span className="text-xs font-semibold text-ink-dim">BB</span>}
+          <span className="text-xs font-semibold text-ink-dim">{unit === "bb" ? "BB" : "$"}</span>
         </form>
       )}
       {turn.raiseKind && (
