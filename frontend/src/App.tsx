@@ -8,8 +8,8 @@ import type { Hand } from "./lib/hand";
 import { loadUnit, saveUnit, UnitProvider, type Unit } from "./lib/money";
 import { applyTheme, loadTheme, type ThemeId } from "./lib/themes";
 
-const headerBtn = "rounded-lg border border-line-strong px-3 py-1 text-sm hover:bg-raised-hover";
-const headerBtnActive = "rounded-lg border border-accent text-accent px-3 py-1 text-sm";
+const headerBtn = "rounded-lg bg-ink text-page px-3 py-1 text-sm font-semibold hover:opacity-85";
+const headerBtnActive = "rounded-lg bg-accent text-page px-3 py-1 text-sm font-semibold";
 
 type View = "replayer" | "builder" | "hands";
 
@@ -39,9 +39,10 @@ export default function App() {
     <div className="min-h-full bg-page text-ink p-6">
       <div className="max-w-6xl mx-auto rounded-3xl border border-line bg-surface p-5">
         <header className="flex justify-between items-center mb-5">
-          <div className="flex items-baseline gap-3">
+          <div className="flex items-center gap-3">
             <h1 className="text-xl font-bold">
-              <button type="button" className="hover:opacity-80" onClick={() => setView("replayer")}>
+              <button type="button" className="flex items-center gap-2 hover:opacity-80" onClick={() => setView("replayer")}>
+                <img src="/logo.png" alt="" className="w-9 h-9" />
                 Poker Hand Analyzer
               </button>
             </h1>

@@ -105,51 +105,49 @@ function ActionControls({ turn, who, onAct }: { turn: Turn; who: string; onAct: 
   return (
     <div className="mt-2 pt-2 border-t border-line space-y-1.5">
       <div className="text-sm font-semibold text-accent">{who} to act</div>
-      <div className="grid grid-cols-2 gap-1.5">
-        {turn.toCall > 0 ? (
-          <>
-            <button type="button" className={actionBtn + " bg-blue-600"} onClick={() => onAct({ ...base, action: "fold" })}>
-              Fold
-            </button>
-            <button type="button" className={actionBtn + " bg-green-600"} onClick={() => onAct({ ...base, action: "call", amount: turn.currentBet })}>
-              Call {format(turn.toCall)}
-            </button>
-          </>
-        ) : (
-          <button type="button" className={actionBtn + " bg-slate-500 col-span-2"} onClick={() => onAct({ ...base, action: "check" })}>
-            Check
-          </button>
-        )}
-      </div>
       {turn.raiseKind && (
-        <>
-          <form
-            className="flex items-center gap-1.5"
-            onSubmit={(e) => {
-              e.preventDefault();
-              submitRaise(fromInput(Number(amount)));
+        <form
+          className="flex items-center gap-1.5"
+          onSubmit={(e) => {
+            e.preventDefault();
+            submitRaise(fromInput(Number(amount)));
+          }}
+        >
+          <button type="submit" className={actionBtn + " bg-red-600 capitalize flex-1"}>
+            {turn.raiseKind}
+          </button>
+          <span className="text-xs font-semibold text-ink-dim">{unit === "bb" ? "BB" : "$"}</span>
+          <input
+            className={field + " !w-16 shrink-0"}
+            type="number"
+            step="any"
+            value={amount}
+            onChange={(e) => {
+              setAmount(e.target.value);
+              setError(null);
             }}
-          >
-            <span className="text-xs font-semibold text-ink-dim">{unit === "bb" ? "BB" : "$"}</span>
-            <input
-              className={field + " !w-16 shrink-0"}
-              type="number"
-              step="any"
-              value={amount}
-              onChange={(e) => {
-                setAmount(e.target.value);
-                setError(null);
-              }}
-              aria-label={turn.raiseKind + " amount"}
-            />
-            <button type="submit" className={actionBtn + " bg-red-600 capitalize flex-1"}>
-              {turn.raiseKind}
-            </button>
-          </form>
-          <button type="button" className={actionBtn + " bg-red-600 w-full"} onClick={() => submitRaise(turn.maxAmount)}>
-            All-in {format(turn.maxAmount)}
+            aria-label={turn.raiseKind + " amount"}
+          />
+        </form>
+      )}
+      {turn.toCall > 0 ? (
+        <>
+          <button type="button" className={actionBtn + " bg-blue-600 w-full"} onClick={() => onAct({ ...base, action: "fold" })}>
+            Fold
+          </button>
+          <button type="button" className={actionBtn + " bg-green-600 w-full"} onClick={() => onAct({ ...base, action: "call", amount: turn.currentBet })}>
+            Call {format(turn.toCall)}
           </button>
         </>
+      ) : (
+        <button type="button" className={actionBtn + " bg-slate-500 w-full"} onClick={() => onAct({ ...base, action: "check" })}>
+          Check
+        </button>
+      )}
+      {turn.raiseKind && (
+        <button type="button" className={actionBtn + " bg-red-900 w-full"} onClick={() => submitRaise(turn.maxAmount)}>
+          All-in {format(turn.maxAmount)}
+        </button>
       )}
       {error && <div className="text-xs text-red-500">{error}</div>}
     </div>
