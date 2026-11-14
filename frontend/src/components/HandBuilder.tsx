@@ -296,7 +296,7 @@ export function HandBuilder({ onAnalyze }: { onAnalyze: (hand: Hand) => void }) 
                     onClick={() => update({ heroPosition: p })}
                     className={
                       "rounded-md border px-2 py-0.5 text-xs font-bold disabled:cursor-not-allowed " +
-                      (draft.heroPosition === p ? "border-accent text-accent" : "border-line-strong text-ink-dim disabled:opacity-50")
+                      (draft.heroPosition === p ? "border-ink bg-ink text-page" :"border-line-strong text-ink-dim disabled:opacity-50")
                     }
                   >
                     {p}
@@ -348,17 +348,17 @@ export function HandBuilder({ onAnalyze }: { onAnalyze: (hand: Hand) => void }) 
             />
           </label>
         </div>
-        <div className="w-44 shrink-0 flex flex-col">
-          <button
-            type="button"
-            disabled={blocked !== null}
-            onClick={analyze}
-            className="flex-1 rounded-2xl border border-line-strong bg-raised text-2xl font-bold hover:bg-raised-hover disabled:opacity-40 disabled:hover:bg-raised"
-          >
-            Analyze
-          </button>
-          <div className="mt-1.5 h-8 text-xs text-center text-ink-faint">{saveError ? "Couldn't save this hand." : blocked ?? "Ready"}</div>
-        </div>
+        <button
+          type="button"
+          disabled={blocked !== null}
+          onClick={analyze}
+          className="w-44 shrink-0 flex flex-col items-center justify-center gap-1 px-3 rounded-2xl border-2 border-emerald-400 bg-emerald-600 text-white hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-emerald-600"
+        >
+          <span className="text-2xl font-bold">Analyze</span>
+          {(saveError || blocked) && (
+            <span className="text-xs font-normal text-center">{saveError ? "Couldn't save this hand." : blocked}</span>
+          )}
+        </button>
       </div>
     </div>
     </BigBlindProvider>
