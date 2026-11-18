@@ -1,11 +1,13 @@
+import { SAMPLE_HANDS } from "../data/sample-hands";
 import type { Hand } from "./hand";
 
 // Saved hands live in this browser. All persistence goes through this file,
 // so it can move to a database later without touching the UI.
 
 const KEY = "poker.hands";
+const SEEDED_KEY = "poker.seeded";
 
-export function loadHands(): Hand[] {
+function read(): Hand[] {
   try {
     const raw = localStorage.getItem(KEY);
     return raw ? (JSON.parse(raw) as Hand[]) : [];
@@ -23,15 +25,63 @@ function write(hands: Hand[]): boolean {
   }
 }
 
+// Adds each sample hand once. After that it's an ordinary hand: editable, deletable, gone for good.
+function seed(): void {
+  try {
+    const raw = localStorage.getItem(SEEDED_KEY);
+    const seeded = new Set<string>(raw && raw.startsWith("[") ? JSON.parse(raw) : []);
+    const fresh = SAMPLE_HANDS.filter((h) => !seeded.has(h.id));
+    if (fresh.length === 0) return;
+    const saved = read();
+    const ids = new Set(fresh.map((h) => h.id));
+    if (write([...saved.filter((h) => !ids.has(h.id)), ...fresh])) {
+      localStorage.setItem(SEEDED_KEY, JSON.stringify(SAMPLE_HANDS.map((h) => h.id)));
+    }
+  } catch {
+    // storage unavailable
+  }
+}
+
+export function loadHands(): Hand[] {
+  seed();
+  return read();
+}
+
 export function newHandId(): string {
   return "hand-" + Date.now();
 }
 
-// Newest first. Returns false if the browser refused to store it.
+// New hands go first; an edited hand keeps its place. Returns false if the browser refused to store it.
 export function saveHand(hand: Hand): boolean {
-  return write([hand, ...loadHands().filter((h) => h.id !== hand.id)]);
+  const hands = loadHands();
+  const i = hands.findIndex((h) => h.id === hand.id);
+  if (i < 0) return write([hand, ...hands]);
+  hands[i] = hand;
+  return write(hands);
 }
 
 export function deleteHand(id: string): void {
   write(loadHands().filter((h) => h.id !== id));
+}
+
+// Favorites are kept apart from the hands so the hand shape stays as in docs/data-model.json.
+const FAVORITES_KEY = "poker.favorites";
+
+export function loadFavorites(): Set<string> {
+  try {
+    return new Set(JSON.parse(localStorage.getItem(FAVORITES_KEY) ?? "[]") as string[]);
+  } catch {
+    return new Set();
+  }
+}
+
+export function toggleFavorite(id: string): Set<string> {
+  const favs = loadFavorites();
+  if (!favs.delete(id)) favs.add(id);
+  try {
+    localStorage.setItem(FAVORITES_KEY, JSON.stringify([...favs]));
+  } catch {
+    // storage unavailable
+  }
+  return favs;
 }

@@ -107,6 +107,34 @@ export function draftToHand(d: Draft, id = "draft"): Hand {
   };
 }
 
+// Inverse of draftToHand, for editing a saved hand.
+export function handToDraft(h: Hand): Draft {
+  const hero = h.players.find((p) => p.position === h.hero)!;
+  const villain = h.players.find((p) => p.position !== h.hero)!;
+  const [b0, b1, b2] = h.board.flop ?? [null, null, null];
+  return {
+    name: h.name,
+    sb: String(h.game.sb),
+    bb: String(h.game.bb),
+    heroStack: String(hero.stack),
+    villainStack: String(villain.stack),
+    heroPosition: h.hero === "BB" ? "BB" : "BTN",
+    cards: {
+      hero0: hero.cards?.[0] ?? null,
+      hero1: hero.cards?.[1] ?? null,
+      board0: b0,
+      board1: b1,
+      board2: b2,
+      board3: h.board.turn,
+      board4: h.board.river,
+      villain0: villain.cards?.[0] ?? null,
+      villain1: villain.cards?.[1] ?? null,
+    },
+    actions: h.actions,
+    notes: h.notes,
+  };
+}
+
 function setupError(d: Draft): string | null {
   const sb = Number(d.sb);
   const bb = Number(d.bb);

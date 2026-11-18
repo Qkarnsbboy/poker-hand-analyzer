@@ -25,13 +25,22 @@ export default function App() {
   const [view, setView] = useState<View>("replayer");
   const [hand, setHand] = useState<Hand>(defaultHand);
   const [startIndex, setStartIndex] = useState(DEFAULT_INDEX);
-  // Bumped so "New Hand" always starts a blank form.
+  // Bumped so the builder and replayer start fresh each time they're opened.
   const [builderKey, setBuilderKey] = useState(0);
+  const [openCount, setOpenCount] = useState(0);
+  const [editing, setEditing] = useState<Hand | null>(null);
 
   const openHand = (h: Hand) => {
     setHand(h);
     setStartIndex(0);
+    setOpenCount((n) => n + 1);
     setView("replayer");
+  };
+
+  const startBuilder = (h: Hand | null) => {
+    setEditing(h);
+    setBuilderKey((k) => k + 1);
+    setView("builder");
   };
 
   return (
@@ -47,7 +56,7 @@ export default function App() {
               </button>
             </h1>
             <span className="text-xl text-ink-faint">/</span>
-            <h2 className="text-xl font-bold text-accent">{PAGE_TITLES[view]}</h2>
+            <h2 className="text-xl font-bold text-accent">{view === "builder" && editing ? "Edit Hand" : PAGE_TITLES[view]}</h2>
           </div>
           <div className="flex gap-2">
             <button className={view === "replayer" ? headerBtnActive : headerBtn} onClick={() => setView("replayer")}>
@@ -55,10 +64,7 @@ export default function App() {
             </button>
             <button
               className={view === "builder" ? headerBtnActive : headerBtn}
-              onClick={() => {
-                setBuilderKey((k) => k + 1);
-                setView("builder");
-              }}
+              onClick={() => startBuilder(null)}
             >
               New Hand
             </button>
@@ -68,9 +74,9 @@ export default function App() {
             <SettingsMenu theme={theme} onTheme={setTheme} unit={unit} onUnit={setUnit} />
           </div>
         </header>
-        {view === "replayer" && <Replayer key={hand.id} hand={hand} initialIndex={startIndex} />}
-        {view === "builder" && <HandBuilder key={builderKey} onAnalyze={openHand} />}
-        {view === "hands" && <HandsList onOpen={openHand} />}
+        {view === "replayer" && <Replayer key={hand.id + "-" + openCount} hand={hand} initialIndex={startIndex} />}
+        {view === "builder" && <HandBuilder key={builderKey} initial={editing ?? undefined} onAnalyze={openHand} />}
+        {view === "hands" && <HandsList onOpen={openHand} onEdit={startBuilder} onNew={() => startBuilder(null)} />}
       </div>
     </div>
     </UnitProvider>

@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import {
+  handToDraft,
   amountError,
   blockingReason,
   draftStatus,
@@ -159,8 +160,8 @@ function actionText(a: Action, allIn: boolean, format: (v: number) => string): s
   return "amount" in a ? verb + " " + format(a.amount) + (allIn ? " (all-in)" : "") : verb;
 }
 
-export function HandBuilder({ onAnalyze }: { onAnalyze: (hand: Hand) => void }) {
-  const [draft, setDraft] = useState<Draft>(newDraft);
+export function HandBuilder({ initial, onAnalyze }: { initial?: Hand; onAnalyze: (hand: Hand) => void }) {
+  const [draft, setDraft] = useState<Draft>(() => (initial ? handToDraft(initial) : newDraft()));
   // A slot the user clicked; otherwise the picker follows the hand's flow.
   const [selected, setSelected] = useState<SlotId | null>(null);
   const [saveError, setSaveError] = useState(false);
@@ -226,7 +227,7 @@ export function HandBuilder({ onAnalyze }: { onAnalyze: (hand: Hand) => void }) 
   };
 
   const analyze = () => {
-    const hand = draftToHand(draft, newHandId());
+    const hand = draftToHand(draft, initial?.id ?? newHandId());
     if (!saveHand(hand)) setSaveError(true);
     onAnalyze(hand);
   };

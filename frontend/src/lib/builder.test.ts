@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { amountError, blockingReason, draftStatus, draftToHand, newDraft, nextSlot } from "./builder";
+import { SAMPLE_HANDS } from "../data/sample-hands";
+import { amountError, blockingReason, draftStatus, draftToHand, handToDraft, newDraft, nextSlot } from "./builder";
 import type { Draft } from "./builder";
 import type { Action } from "./hand";
 import { replayAt } from "./replay";
@@ -131,4 +132,12 @@ describe("draftToHand", () => {
   });
 
   it("names an unnamed hand", () => expect(draftToHand(draft()).name).toBe("Untitled hand"));
+});
+
+describe("handToDraft", () => {
+  it.each(SAMPLE_HANDS.map((h) => [h.name, h] as const))("round-trips %s and it's a complete hand", (_, h) => {
+    const d = handToDraft(h);
+    expect(draftToHand(d, h.id)).toEqual(h);
+    expect(draftStatus(d).kind).toBe("complete");
+  });
 });
