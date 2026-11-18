@@ -27,6 +27,14 @@ npm run build   # tsc + vite build, the type-check entry point
 npm run screenshot  # Playwright screenshots of the running dev server into .screenshots/
 ```
 
+## Commands (from `backend/`)
+
+```bash
+python3 -m venv .venv && .venv/bin/pip install -r requirements.txt   # one-time
+.venv/bin/uvicorn main:app --port 8000 --reload   # API on :8000; Vite proxies /api/* to it
+.venv/bin/python -m pytest -q                      # API tests
+```
+
 ## Code layout
 
 - `frontend/src/lib/hand.ts`: types mirroring `docs/data-model.json`

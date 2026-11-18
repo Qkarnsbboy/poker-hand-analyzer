@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { AnalyzeResponse, RecommendedAction } from "../lib/analysis";
 import { useMoney } from "../lib/money";
+import type { AnalysisState } from "./Replayer";
 
 // Fixed colors, the same in every theme: green = call, grey = check, blue = fold, red = bet/raise.
 const ACTION_STYLE: Record<RecommendedAction, string> = {
@@ -55,9 +56,35 @@ function Accordion({ title, items }: { title: string; items: string[] }) {
   );
 }
 
-export function AnalysisPanel({ analysis, pending = false }: { analysis: AnalyzeResponse | null; pending?: boolean }) {
-  if (pending) return <div className="absolute inset-4 flex items-center justify-center text-ink-faint">Analysis coming soon</div>;
-  if (!analysis) return null; // empty at non-decision nodes
+// The right panel. Shows one of four things depending on `state`.
+export function AnalysisPanel({ state, onRetry }: { state: AnalysisState; onRetry: () => void }) {
+  // 1. Not hero's turn: empty.
+  if (state.kind === "none") return null;
+
+  // 2. Waiting: spinner.
+  if (state.kind === "loading") {
+    return (
+      <div className="absolute inset-4 flex flex-col items-center justify-center gap-3 text-ink-faint">
+        <div className="w-8 h-8 rounded-full border-4 border-line-strong border-t-accent animate-spin" />
+        Analyzing...
+      </div>
+    );
+  }
+  // 3. Failed: warning + retry button.
+  if (state.kind === "error") {
+    return (
+      <div className="absolute inset-4 flex flex-col items-center justify-center gap-2 text-center">
+        <span className="text-3xl text-amber-400" aria-hidden>⚠</span>
+        <span className="font-bold">Analysis unavailable</span>
+        <span className="text-xs text-ink-faint max-w-xs">{state.message}</span>
+        <button type="button" onClick={onRetry} className="mt-2 rounded-md bg-ink px-3 py-1 text-sm font-semibold text-page hover:opacity-85">
+          Retry
+        </button>
+      </div>
+    );
+  }
+  // 4. Got an answer: recommendation box, then theory and exploitative lists.
+  const analysis = state.data;
   return (
     <div className="absolute inset-4 flex flex-col gap-3 overflow-y-auto no-scrollbar">
       <ActionBox rec={analysis.recommendation} />

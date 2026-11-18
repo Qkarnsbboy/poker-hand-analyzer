@@ -5,5 +5,10 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
+    // Forward /api/* to the backend. e.g. /api/analyze -> http://localhost:8000/analyze
+    // This lets the frontend call the backend without CORS setup.
+    proxy: {
+      "/api": { target: "http://localhost:8000", rewrite: (p) => p.replace(/^\/api/, "") },
+    },
   },
 });

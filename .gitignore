@@ -24,3 +24,8 @@ build/
 
 # Local screenshots
 .screenshots/
+
+# Python
+.venv/
+__pycache__/
+.pytest_cache/
