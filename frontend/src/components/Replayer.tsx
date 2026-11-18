@@ -4,7 +4,7 @@ import { fetchAnalysis, type AnalyzeResponse } from "../lib/analysis";
 import type { Hand, Street } from "../lib/hand";
 import { STREETS } from "../lib/hand";
 import { BigBlindProvider } from "../lib/money";
-import { replayAt, streetStartIndex } from "../lib/replay";
+import { replayAt, replaySteps, streetStartIndex } from "../lib/replay";
 import { AnalysisPanel } from "./AnalysisPanel";
 import { Controls } from "./Controls";
 import { Table } from "./Table";
@@ -22,45 +22,58 @@ export type AnalysisState =
 const USE_MOCK = /[?&](mock|long)\b/.test(window.location.search);
 
 export function Replayer({ hand, initialIndex }: { hand: Hand; initialIndex: number }) {
-  const last = hand.actions.length;
-  const [index, setIndex] = useState(initialIndex);
+  // The controls move through steps (actions + a pause at the end of each street).
+  const steps = useMemo(() => replaySteps(hand), [hand]);
+  const stepOf = (actionIndex: number) => steps.findIndex((s) => s.index === actionIndex && !s.closing);
+  const last = steps.length - 1;
+  const [step, setStep] = useState(() => stepOf(initialIndex));
   const [playing, setPlaying] = useState(false);
-  const state = useMemo(() => replayAt(hand, index), [hand, index]);
 
+  // Which action we're before, and what the table looks like.
+  const { index, closing } = steps[step];
+  const state = useMemo(() => replayAt(hand, index, closing), [hand, index, closing]);
+
+  // Street buttons jump to the first action of that street (as a step number).
   const streetStarts = useMemo(
-    () => Object.fromEntries(STREETS.map((s) => [s, streetStartIndex(hand, s)])) as Record<Street, number | null>,
-    [hand],
+    () =>
+      Object.fromEntries(
+        STREETS.map((s) => {
+          const i = streetStartIndex(hand, s);
+          return [s, i === null ? null : steps.findIndex((x) => x.index === i && !x.closing)];
+        }),
+      ) as Record<Street, number | null>,
+    [hand, steps],
   );
 
   // Any manual navigation stops autoplay.
   const seek = (i: number) => {
     setPlaying(false);
-    setIndex(Math.max(0, Math.min(i, last)));
+    setStep(Math.max(0, Math.min(i, last)));
   };
 
   // Autoplay: advance one action per tick, stop at the end.
   useEffect(() => {
     if (!playing) return;
-    if (index >= last) {
+    if (step >= last) {
       setPlaying(false);
       return;
     }
-    const t = setTimeout(() => setIndex((i) => i + 1), PLAY_INTERVAL_MS);
+    const t = setTimeout(() => setStep((i) => i + 1), PLAY_INTERVAL_MS);
     return () => clearTimeout(t);
-  }, [playing, index, last]);
+  }, [playing, step, last]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLSelectElement) return;
       const stop = () => setPlaying(false);
       if (e.key === " ") setPlaying((p) => !p);
-      else if (e.key === "ArrowRight") (stop(), setIndex((i) => Math.min(i + 1, last)));
-      else if (e.key === "ArrowLeft") (stop(), setIndex((i) => Math.max(i - 1, 0)));
-      else if (e.key === "Home") (stop(), setIndex(0));
-      else if (e.key === "End") (stop(), setIndex(last));
+      else if (e.key === "ArrowRight") (stop(), setStep((i) => Math.min(i + 1, last)));
+      else if (e.key === "ArrowLeft") (stop(), setStep((i) => Math.max(i - 1, 0)));
+      else if (e.key === "Home") (stop(), setStep(0));
+      else if (e.key === "End") (stop(), setStep(last));
       else if (e.key >= "1" && e.key <= "4") {
         const start = streetStarts[STREETS[Number(e.key) - 1]];
-        if (start !== null) (stop(), setIndex(start));
+        if (start !== null) (stop(), setStep(start));
       } else return;
       e.preventDefault();
     };
@@ -107,7 +120,7 @@ export function Replayer({ hand, initialIndex }: { hand: Hand; initialIndex: num
         <div className="text-sm font-semibold text-ink-dim">{hand.name}</div>
         <Table hand={hand} state={state} />
         <Controls
-          index={index}
+          index={step}
           last={last}
           street={state.street}
           streetStarts={streetStarts}

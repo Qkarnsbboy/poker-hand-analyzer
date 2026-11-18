@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { defaultHand, DEFAULT_INDEX } from "../data/default-hand";
-import { replayAt, streetStartIndex } from "./replay";
+import { replayAt, replaySteps, streetStartIndex } from "./replay";
 
 const stack = (i: number, pos: string) => replayAt(defaultHand, i).seats.find((s) => s.position === pos)!.stack;
 
@@ -75,5 +75,25 @@ describe("streetStartIndex", () => {
     expect(streetStartIndex(defaultHand, "flop")).toBe(3);
     expect(streetStartIndex(defaultHand, "turn")).toBe(5);
     expect(streetStartIndex(defaultHand, "river")).toBe(8);
+  });
+});
+
+describe("closing steps", () => {
+  it("adds a pause after each street-closing action", () => {
+    const steps = replaySteps(defaultHand);
+    // 11 action positions + 3 street changes (flop, turn, river)
+    expect(steps).toHaveLength(14);
+    expect(steps.filter((s) => s.closing).map((s) => s.index)).toEqual([3, 5, 8]);
+  });
+
+  it("shows the closing call on the old street, before the next cards", () => {
+    // Index 3 = flop's first action. Closing view = preflop, BTN's call still showing.
+    const t = replayAt(defaultHand, 3, true);
+    expect(t.street).toBe("preflop");
+    expect(t.board).toEqual([]);
+    expect(t.seats.find((s) => s.position === "BTN")!.lastAction?.action).toBe("call");
+    expect(t.toAct).toBeNull();
+    expect(t.isDecisionNode).toBe(false);
+    expect(t.pot).toBe(100);
   });
 });

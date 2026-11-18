@@ -42,7 +42,9 @@ function boardThrough(hand: Hand, street: Street): Card[] {
   return cards;
 }
 
-export function replayAt(hand: Hand, index: number): TableState {
+// closing = true: show the street that just ended (with its final call/check)
+// instead of jumping straight to the next street.
+export function replayAt(hand: Hand, index: number, closing = false): TableState {
   const n = hand.actions.length;
   const i = Math.max(0, Math.min(index, n));
   const isEnd = i === n;
@@ -96,10 +98,10 @@ export function replayAt(hand: Hand, index: number): TableState {
     s.lastAction = a;
   }
 
-  // Show the street the next action is on; at the end, stay on the last action's street.
-  const next = hand.actions[i];
+  // Show the street the next action is on; at the end (or when closing), stay on the last action's street.
+  const next = closing ? undefined : hand.actions[i];
   if (next) enterStreet(next.street);
-  const shownStreet = next ? next.street : (hand.actions[n - 1]?.street ?? "preflop");
+  const shownStreet = next ? next.street : (hand.actions[i - 1]?.street ?? "preflop");
 
   const currentBet = Math.max(...seats.map((s) => s.committedThisStreet));
   const toAct = next ? next.position : null;
@@ -116,6 +118,25 @@ export function replayAt(hand: Hand, index: number): TableState {
     isDecisionNode: toAct === hand.hero,
     isEnd,
   };
+}
+
+// One replayer step = one view of the table.
+// Normally that's "before actions[index]". Between streets we add an extra
+// closing step, so you see the call/check that ended the street before the next cards come.
+export interface Step {
+  index: number;
+  closing: boolean;
+}
+
+export function replaySteps(hand: Hand): Step[] {
+  const a = hand.actions;
+  const steps: Step[] = [];
+  for (let i = 0; i <= a.length; i++) {
+    const newStreet = i > 0 && i < a.length && a[i].street !== a[i - 1].street;
+    if (newStreet) steps.push({ index: i, closing: true });
+    steps.push({ index: i, closing: false });
+  }
+  return steps;
 }
 
 // First action index on each street, or null if the hand never reached it.
