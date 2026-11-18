@@ -65,4 +65,4 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt   # one-time
 
 Vertical slices, each working end to end before the next starts. Current slice and status are in the Status table in `docs/poker-analyzer-decisions.md`. Update it when a step finishes.
 
-Commit each stable sub-step of a slice (e.g. "backend skeleton", "math helpers"), once it works and npm test, npm run build, and backend pytest pass. Keep unrelated changes in separate commits. Small UI tweaks can be batched into one commit. Push right after each commit.
+Commit at major milestones only: a substantial chunk that's stable and tested (e.g. "backend skeleton + tests"), not every small change. Small tweaks and fixes ride along with the next milestone commit. npm test, npm run build, and backend pytest must pass first. Push right after each commit.

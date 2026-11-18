@@ -65,7 +65,7 @@ poker_analyzer/
 | 6 | CLAUDE.md | done |
 | 7 | Slice 1: hardcoded hand, replay reducer, steppable table | done |
 | 8 | Slice 2: hand builder | done |
-| 9 | Slice 3: analysis panel, decision node markers | in progress (backend skeleton done) |
+| 9 | Slice 3: analysis panel, decision node markers | in progress (skeleton, poker math done) |
 | 10 | Style pass | not started |
 
 ### Build approach

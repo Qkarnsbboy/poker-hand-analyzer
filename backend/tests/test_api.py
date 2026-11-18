@@ -9,31 +9,7 @@ from main import app
 # A fake browser that calls the app directly, no server needed.
 client = TestClient(app)
 
-# The "Aces Cracked" sample hand. Hero (BTN) acts at index 0, 2, 4, 6, 9.
-HAND = {
-    "id": "hand-001",
-    "name": "Aces Cracked",
-    "game": {"variant": "nlhe", "format": "cash", "sb": 2, "bb": 5, "ante": 0},
-    "hero": "BTN",
-    "players": [
-        {"position": "BTN", "stack": 700, "cards": ["As", "Ah"]},
-        {"position": "BB", "stack": 600, "cards": ["Ad", "5c"], "label": "lag"},
-    ],
-    "board": {"flop": ["Ks", "Jc", "3s"], "turn": "4h", "river": "2d"},
-    "actions": [
-        {"street": "preflop", "position": "BTN", "action": "raise", "amount": 15},
-        {"street": "preflop", "position": "BB", "action": "raise", "amount": 50},
-        {"street": "preflop", "position": "BTN", "action": "call", "amount": 50},
-        {"street": "flop", "position": "BB", "action": "bet", "amount": 35},
-        {"street": "flop", "position": "BTN", "action": "call", "amount": 35},
-        {"street": "turn", "position": "BB", "action": "check"},
-        {"street": "turn", "position": "BTN", "action": "bet", "amount": 115},
-        {"street": "turn", "position": "BB", "action": "call", "amount": 115},
-        {"street": "river", "position": "BB", "action": "bet", "amount": 400},
-        {"street": "river", "position": "BTN", "action": "call", "amount": 400},
-    ],
-    "notes": "Villain is loose.",
-}
+from tests.hands import HAND
 
 
 def test_health():
