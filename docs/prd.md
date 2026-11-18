@@ -20,7 +20,7 @@ There is no poker analysis website that addresses combined theoretical / exploit
 
 - **Poker hand replayer** — walk through every action
 - **Analysis box** — action (x, b, r, f), size if applicable, reasoning (theory + exploitative)
-- **Hand entry tool** — fields for each player: stack size, action, classification, and cards
+- **Hand entry tool** — fields for each player: stack size, action, and cards, plus villain player type (fish, nit, TAG, LAG...)
 
 ## 5. Non-goals
 

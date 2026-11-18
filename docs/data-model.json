@@ -18,7 +18,8 @@
     {
         "position": "BB",
         "stack": 120,
-        "cards": null
+        "cards": null,
+        "label": "lag"
     }
   ],
   "board": {

@@ -9,7 +9,7 @@ const riverTopBoat: Hand = {
   hero: "BB",
   players: [
     { position: "BB", stack: 1000, cards: ["6s", "6d"] },
-    { position: "BTN", stack: 1000, cards: ["Qh", "9h"] },
+    { position: "BTN", stack: 1000, cards: ["Qh", "9h"], label: null },
   ],
   board: { flop: ["6h", "5h", "2s"], turn: "Kh", river: "5s" },
   actions: [
@@ -37,7 +37,7 @@ const comboDraw: Hand = {
   hero: "BB",
   players: [
     { position: "BB", stack: 200, cards: ["9h", "8h"] },
-    { position: "BTN", stack: 200, cards: null },
+    { position: "BTN", stack: 200, cards: null, label: "tag" },
   ],
   board: { flop: ["Th", "7h", "2c"], turn: "Ks", river: "3d" },
   actions: [

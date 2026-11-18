@@ -13,7 +13,8 @@ import {
   STREET_SLOTS,
 } from "../lib/builder";
 import type { Draft, SlotId, Turn } from "../lib/builder";
-import type { Action, Card, Hand, Position, Street } from "../lib/hand";
+import type { Action, Card, Hand, PlayerLabel, Position, Street } from "../lib/hand";
+import { PLAYER_LABEL_NAMES, PLAYER_LABELS } from "../lib/hand";
 import { BigBlindProvider, formatMoney, useMoney } from "../lib/money";
 import { replayAt } from "../lib/replay";
 import { newHandId, saveHand } from "../lib/storage";
@@ -338,6 +339,21 @@ export function HandBuilder({ initial, onAnalyze }: { initial?: Hand; onAnalyze:
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-ink-dim">Villain cards (optional)</span>
             <div className="flex gap-1.5">{(["villain0", "villain1"] as SlotId[]).map(slot)}</div>
+          </div>
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs font-semibold text-ink-dim">Villain type</span>
+            <select
+              className={field + " w-28"}
+              value={draft.villainLabel ?? ""}
+              onChange={(e) => update({ villainLabel: (e.target.value || null) as PlayerLabel | null })}
+            >
+              <option value="">Unknown</option>
+              {PLAYER_LABELS.map((l) => (
+                <option key={l} value={l}>
+                  {PLAYER_LABEL_NAMES[l]}
+                </option>
+              ))}
+            </select>
           </div>
           <label className="flex-1 flex flex-col">
             <span className={label}>Additional info</span>

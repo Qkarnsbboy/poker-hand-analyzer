@@ -8,7 +8,7 @@ export const defaultHand: Hand = {
   hero: "BTN",
   players: [
     { position: "BTN", stack: 700, cards: ["As", "Ah"] },
-    { position: "BB", stack: 600, cards: ["Ad", "5c"] },
+    { position: "BB", stack: 600, cards: ["Ad", "5c"], label: "lag" },
   ],
   board: { flop: ["Ks", "Jc", "3s"], turn: "4h", river: "2d" },
   actions: [

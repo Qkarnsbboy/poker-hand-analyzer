@@ -16,10 +16,23 @@ export interface Game {
   ante: number;
 }
 
+export const PLAYER_LABELS = ["fish", "station", "nit", "tag", "lag", "maniac"] as const;
+export type PlayerLabel = (typeof PLAYER_LABELS)[number];
+
+export const PLAYER_LABEL_NAMES: Record<PlayerLabel, string> = {
+  fish: "Fish",
+  station: "Station",
+  nit: "Nit",
+  tag: "TAG",
+  lag: "LAG",
+  maniac: "Maniac",
+};
+
 export interface Player {
   position: Position;
   stack: number; // starting stack, never changes
   cards: [Card, Card] | null; // null = unknown
+  label?: PlayerLabel | null; // villain's player type; null = unknown, absent on hero
 }
 
 export interface Board {

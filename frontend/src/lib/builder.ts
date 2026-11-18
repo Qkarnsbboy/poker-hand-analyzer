@@ -1,4 +1,4 @@
-import type { Action, Board, Card, Hand, Player, Position, Street } from "./hand";
+import type { Action, Board, Card, Hand, Player, PlayerLabel, Position, Street } from "./hand";
 import { STREETS } from "./hand";
 import { replayAt } from "./replay";
 
@@ -45,6 +45,7 @@ export interface Draft {
   heroStack: string;
   villainStack: string;
   heroPosition: "BTN" | "BB";
+  villainLabel: PlayerLabel | null;
   cards: Cards;
   actions: Action[];
   notes: string;
@@ -58,6 +59,7 @@ export function newDraft(): Draft {
     heroStack: "200",
     villainStack: "200",
     heroPosition: "BTN",
+    villainLabel: null,
     cards: Object.fromEntries(SLOT_IDS.map((s) => [s, null])) as Cards,
     actions: [],
     notes: "",
@@ -89,7 +91,7 @@ export function draftToHand(d: Draft, id = "draft"): Hand {
   const c = d.cards;
   const villainPosition: Position = d.heroPosition === "BTN" ? "BB" : "BTN";
   const hero: Player = { position: d.heroPosition, stack: Number(d.heroStack), cards: pair(c.hero0, c.hero1) };
-  const villain: Player = { position: villainPosition, stack: Number(d.villainStack), cards: pair(c.villain0, c.villain1) };
+  const villain: Player = { position: villainPosition, stack: Number(d.villainStack), cards: pair(c.villain0, c.villain1), label: d.villainLabel };
   const board: Board = {
     flop: c.board0 && c.board1 && c.board2 ? [c.board0, c.board1, c.board2] : null,
     turn: c.board3,
@@ -119,6 +121,7 @@ export function handToDraft(h: Hand): Draft {
     heroStack: String(hero.stack),
     villainStack: String(villain.stack),
     heroPosition: h.hero === "BB" ? "BB" : "BTN",
+    villainLabel: villain.label ?? null,
     cards: {
       hero0: hero.cards?.[0] ?? null,
       hero1: hero.cards?.[1] ?? null,

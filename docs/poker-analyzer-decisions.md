@@ -138,6 +138,7 @@ Core rule: store decisions, derive consequences. Never store pot or current stac
 - **Cards are two characters:** rank then lowercase suit, `T` for ten (`As`, `Td`, `2h`).
 - **`board` uses named keys** (flop, turn, river), `null` for streets not seen.
 - **`game` includes `variant`, `format`, `ante`** even though v1 is cash NLHE only. Cheap now, avoids a backfill later.
+- **Villain has a `label`** (player type): one of `fish`, `station`, `nit`, `tag`, `lag`, `maniac`, or `null` when unknown. Hero has no `label` key (not applicable). Gives the exploitative analysis a structured read alongside the notes.
 - **`notes` is free text** (empty string when unused). Carries villain reads so the LLM analysis can address the actual spot.
 - **`call` stores an amount** even though it is derivable, so the JSON is readable by eye.
 - **`players` is an array, not an object keyed by position**, because object key order is not guaranteed.
