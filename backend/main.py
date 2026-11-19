@@ -1,10 +1,13 @@
-"""FastAPI app. Skeleton: /analyze validates the request and returns placeholder analysis until the LLM is wired in."""
+"""FastAPI app. /analyze: validate -> poker math -> prompt -> Claude -> response."""
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
+import llm
 from models import AnalyzeRequest, AnalyzeResponse, Recommendation
+from poker_math import decision_math
+from prompt import SYSTEM_PROMPT, build_prompt
 
 # The app object. uvicorn runs this ("main:app").
 app = FastAPI(title="Poker Hand Analyzer")
@@ -45,20 +48,26 @@ def analyze(req: AnalyzeRequest):
     if actions[i].position != req.hand.hero:
         return error(422, "invalid_request", f"action_index {i} is not a hero decision.")
 
-    # PLACEHOLDER: this is where the Claude call will go.
-    # For now, just recommend whatever hero actually did.
-    taken = actions[i]
-    sizing = getattr(taken, "amount", None) if taken.action in ("bet", "raise") else None
+    # 1. Work out the numbers.
+    math = decision_math(req.hand, i)
+    # 2. Write the question.
+    question = build_prompt(req.hand, i, math)
+    # 3. Ask Claude. Errors map to the contract's status codes.
+    try:
+        answer = llm.ask_claude(SYSTEM_PROMPT, question)
+    except llm.LLMTimeout as e:
+        return error(504, "llm_timeout", str(e))
+    except llm.LLMError as e:
+        return error(502, "llm_error", str(e))
+
+    # 4. Tidy up and send back. Sizing only makes sense for bet/raise.
+    sizing = answer.sizing if answer.action in ("bet", "raise") else None
+    if len(answer.theory) < 2 or len(answer.exploitative) < 2:
+        return error(502, "llm_error", "Claude's answer was missing reasoning.")
     return AnalyzeResponse(
         action_index=i,
-        recommendation=Recommendation(action=taken.action, sizing=sizing, confidence="low"),
-        theory=[
-            "Placeholder from the backend skeleton.",
-            "Real theory reasoning arrives once the LLM is wired in.",
-        ],
-        exploitative=[
-            "Placeholder from the backend skeleton.",
-            "Real exploitative reasoning will use villain type and notes.",
-        ],
-        what_would_change_this="Placeholder.",
+        recommendation=Recommendation(action=answer.action, sizing=sizing, confidence=answer.confidence),
+        theory=answer.theory[:4],
+        exploitative=answer.exploitative[:4],
+        what_would_change_this=answer.what_would_change_this,
     )
