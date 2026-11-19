@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { mockFromUrl } from "../data/mock-analysis";
-import { fetchAnalysis, type AnalyzeResponse } from "../lib/analysis";
+import { analyzeWholeHand, getAnalysis, type AnalyzeResponse } from "../lib/analysis";
+import { loadAnalysis } from "../lib/storage";
 import type { Hand, Street } from "../lib/hand";
 import { STREETS } from "../lib/hand";
 import { BigBlindProvider } from "../lib/money";
@@ -81,10 +82,14 @@ export function Replayer({ hand, initialIndex }: { hand: Hand; initialIndex: num
     return () => window.removeEventListener("keydown", onKey);
   }, [last, streetStarts]);
 
-  // Analysis for hero decisions, fetched on arrival and cached per action for this hand.
-  const cache = useRef(new Map<number, AnalyzeResponse>()); // action index -> answer
+  // Analysis. Usually already saved (pre-run when the hand was saved); if not, it's
+  // fetched here. Opening a hand also starts any decisions that aren't saved yet.
   const [analysis, setAnalysis] = useState<AnalysisState>({ kind: "none" });
   const [retry, setRetry] = useState(0); // bumping this re-runs the effect below
+
+  useEffect(() => {
+    if (!USE_MOCK) analyzeWholeHand(hand);
+  }, [hand]);
 
   // Runs every time the user lands on a new action.
   useEffect(() => {
@@ -92,25 +97,22 @@ export function Replayer({ hand, initialIndex }: { hand: Hand; initialIndex: num
     if (!state.isDecisionNode) return setAnalysis({ kind: "none" });
     // Dev preview mode: use canned text.
     if (USE_MOCK) return setAnalysis({ kind: "ready", data: mockFromUrl() });
-    // Already asked about this action: reuse the answer.
-    const cached = cache.current.get(index);
-    if (cached) return setAnalysis({ kind: "ready", data: cached });
 
-    // Otherwise ask the backend.
-    setAnalysis({ kind: "loading" });
-    const ctrl = new AbortController();
-    fetchAnalysis(hand, index, ctrl.signal)
+    // `live` goes false when the user moves on, so a late answer doesn't overwrite the panel.
+    let live = true;
+    const saved = loadAnalysis(hand, index);
+    setAnalysis(saved ? { kind: "ready", data: saved } : { kind: "loading" });
+    if (saved) return;
+    getAnalysis(hand, index)
       .then((data) => {
-        if (data.action_index !== index) return; // answer for an old action, ignore it
-        cache.current.set(index, data);
-        setAnalysis({ kind: "ready", data });
+        if (live && data.action_index === index) setAnalysis({ kind: "ready", data });
       })
       .catch((e: Error) => {
-        // Cancelled on purpose (user moved on) isn't an error.
-        if (!ctrl.signal.aborted) setAnalysis({ kind: "error", message: e.message });
+        if (live) setAnalysis({ kind: "error", message: e.message });
       });
-    // Cleanup: if the user moves on before the answer arrives, cancel the request.
-    return () => ctrl.abort();
+    return () => {
+      live = false;
+    };
   }, [hand, index, state.isDecisionNode, retry]);
 
   return (

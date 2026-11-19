@@ -12,7 +12,7 @@ The requests the frontend sends to the backend, and what comes back. Hand shape 
 
 ## `POST /analyze`
 
-Called when the replayer lands on a hero decision node.
+Called once per hero decision, all in parallel, when a hand is saved from the builder (or first opened, if it has no saved analysis). Answers are saved in browser storage, so the replayer shows them instantly.
 
 ### Request
 
@@ -107,9 +107,10 @@ All errors use one shape:
 
 ## Frontend behavior
 
-- **Loading:** show a loading state in the right panel while a request is in flight
+- **Pre-run:** every hero decision is analyzed up front; answers are stored per hand and thrown away when the hand is edited
+- **Loading:** show a loading state only if you reach a decision before its answer has arrived
 - **Failure (any error):** show a warning icon and "Analysis unavailable", with a retry button
-- **Non-decision nodes:** right panel is empty, no request is made
+- **Non-decision nodes:** right panel is empty
 - **Stale responses:** ignore a `/analyze` response whose `action_index` doesn't match the current node
 
 ## Backend notes

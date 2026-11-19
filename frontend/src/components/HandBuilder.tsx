@@ -17,6 +17,7 @@ import type { Action, Card, Hand, PlayerLabel, Position, Street } from "../lib/h
 import { PLAYER_LABEL_NAMES, PLAYER_LABELS } from "../lib/hand";
 import { BigBlindProvider, formatMoney, useMoney } from "../lib/money";
 import { replayAt } from "../lib/replay";
+import { analyzeWholeHand } from "../lib/analysis";
 import { newHandId, saveHand } from "../lib/storage";
 import { PlayingCard } from "./PlayingCard";
 
@@ -230,6 +231,7 @@ export function HandBuilder({ initial, onAnalyze }: { initial?: Hand; onAnalyze:
   const analyze = () => {
     const hand = draftToHand(draft, initial?.id ?? newHandId());
     if (!saveHand(hand)) setSaveError(true);
+    analyzeWholeHand(hand); // start Claude on every decision now, before you get there
     onAnalyze(hand);
   };
 

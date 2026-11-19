@@ -65,12 +65,17 @@ poker_analyzer/
 | 6 | CLAUDE.md | done |
 | 7 | Slice 1: hardcoded hand, replay reducer, steppable table | done |
 | 8 | Slice 2: hand builder | done |
-| 9 | Slice 3: analysis panel, decision node markers | in progress (skeleton, poker math, Claude call done; decision markers next) |
+| 9 | Slice 3: analysis panel (backend, poker math, Claude call, pre-run + saved analysis) | done |
 | 10 | Style pass | not started |
 
 ### Build approach
 
 Vertical slices. Each one works end to end before the next starts. Slice 1 hardcodes the hand and skips styling and analysis.
+
+## Analysis timing
+
+- **Pre-run, not live.** When a hand is saved, every hero decision goes to Claude in parallel (~7s total, ~1c each). Answers are stored in browser storage, keyed by hand and a fingerprint of its contents, so replaying is instant and free. Editing the hand re-runs it.
+- **Decision node markers dropped.** Not needed once analysis is instant.
 
 ## UI
 
