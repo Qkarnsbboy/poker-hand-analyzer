@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { AnalyzeResponse, RecommendedAction } from "../lib/analysis";
 import { useMoney } from "../lib/money";
+import { useAuth } from "../lib/auth";
 import type { AnalysisState } from "./Replayer";
 
 // Fixed colors, the same in every theme: green = call, grey = check, blue = fold, red = bet/raise.
@@ -107,6 +108,9 @@ export function AnalysisPanel({
   // 1. Not hero's turn: empty.
   if (state.kind === "none") return null;
 
+  // Guest's own hand: analysis needs an account.
+  if (state.kind === "locked") return <LockedPanel />;
+
   // 2. Waiting: spinner.
   if (state.kind === "loading") {
     return (
@@ -154,6 +158,25 @@ export function AnalysisPanel({
           { label: "Adjustment", bullets: exploitative.adjustment },
         ]}
       />
+    </div>
+  );
+}
+
+// Shown to guests at a decision in their own hand.
+function LockedPanel() {
+  const auth = useAuth();
+  return (
+    <div className="absolute inset-4 flex flex-col items-center justify-center gap-2 text-center">
+      <span className="text-3xl" aria-hidden>🔒</span>
+      <span className="font-bold">Sign in to get analysis</span>
+      <span className="text-xs text-ink-faint max-w-xs">Free account. Your hands are saved, and every decision is analyzed.</span>
+      <button
+        type="button"
+        onClick={() => auth.setMenuOpen(true)}
+        className="mt-2 rounded-md bg-accent px-4 py-1.5 text-sm font-semibold text-page hover:opacity-85"
+      >
+        Sign in
+      </button>
     </div>
   );
 }

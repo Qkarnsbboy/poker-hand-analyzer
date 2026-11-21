@@ -1,7 +1,7 @@
 """FastAPI app.
 
-/analyze: login -> validate -> saved answer? -> poker math -> hand strength -> prompt
-          -> Claude -> save answer + record cost -> response
+/analyze: login -> validate -> saved answer? -> spend cap -> coach.analyze_decision
+          (math, hand strength, prompt, Claude) -> record cost + save answer -> response
 /hands...: see hands_api.py
 """
 
@@ -13,15 +13,13 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 import caps
+import coach
 import llm
 import store
 from auth import current_user_id
 from errors import ApiError, error_response
 from hands_api import router as hands_router
-from models import AnalyzeRequest, AnalyzeResponse, Recommendation
-from poker_math import decision_math
-from hand_strength import hand_strength
-from prompt import SYSTEM_PROMPT, board_through, build_prompt
+from models import AnalyzeRequest, AnalyzeResponse
 
 # Read SUPABASE_URL, DATABASE_URL, ANTHROPIC_API_KEY... from backend/.env
 load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
@@ -83,18 +81,9 @@ def analyze(req: AnalyzeRequest, user_id: str = Depends(current_user_id)):
     # Over a monthly spend cap? Stop before calling Claude.
     caps.check_caps(user_id)
 
-    # 1. Work out the numbers.
-    math = decision_math(hand, i)
-    # 2. Work out what Hero has and which hands beat it (on the board shown so far).
-    hero = next(p for p in hand.players if p.position == hand.hero)
-    board = board_through(hand, math.street)
-    strength = hand_strength(hero.cards, board) if hero.cards else None
-    # 3. Write the question.
-    question = build_prompt(hand, i, math, strength)
-    # 4. Ask Claude. Errors map to the contract's status codes.
-    # Every call is recorded with its cost, success or not (for the spend caps).
+    # Ask Claude. Every call is recorded with its cost, success or not (for the caps).
     try:
-        answer, call = llm.ask_claude(SYSTEM_PROMPT, question)
+        response, call = coach.analyze_decision(hand, i)
     except llm.LLMError as e:
         store.record_llm_call(user_id, hand.id, i, e.call)
         if isinstance(e, llm.LLMTimeout):
@@ -102,30 +91,6 @@ def analyze(req: AnalyzeRequest, user_id: str = Depends(current_user_id)):
         raise ApiError(502, "llm_error", str(e))
     store.record_llm_call(user_id, hand.id, i, call)
 
-    # 5. Tidy up and send back.
-    # Sizing only makes sense for bet or raise.
-    if answer.action in ("bet", "raise"):
-        sizing = answer.sizing
-    else:
-        sizing = None
-
-    # Preflop there is no board to describe.
-    theory = answer.theory
-    if math.street == "preflop":
-        theory = theory.model_copy(update={"board_texture": ["N/A"]})
-
-    # No notes means there is nothing to read from them.
-    exploitative = answer.exploitative
-    if not hand.notes.strip():
-        exploitative = exploitative.model_copy(update={"reads": []})
-
-    response = AnalyzeResponse(
-        action_index=i,
-        recommendation=Recommendation(action=answer.action, sizing=sizing, confidence=answer.confidence),
-        theory=theory,
-        exploitative=exploitative,
-    )
-
-    # 6. Save it, so next time it is free. (Skipped if the hand is not saved yet.)
+    # Save it, so next time it is free. (Skipped if the hand is not saved yet.)
     store.save_analysis(user_id, hand.id, i, hand_fingerprint, response.model_dump(mode="json"))
     return response

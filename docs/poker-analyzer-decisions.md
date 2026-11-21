@@ -66,7 +66,7 @@ poker_analyzer/
 | 7 | Slice 1: hardcoded hand, replay reducer, steppable table | done |
 | 8 | Slice 2: hand builder | done |
 | 9 | Slice 3: analysis panel (backend, poker math, Claude call, pre-run + saved analysis) | done |
-| 10 | Slice 4: accounts + database (Supabase login, Postgres, spend caps) | in progress |
+| 10 | Slice 4: accounts + database (Google + email login, guest mode, Postgres, spend caps) | done |
 | 11 | Slice 5: hosting (Render backend, Vercel frontend, CI, Sentry) | not started |
 | 12 | Style pass | not started |
 
@@ -115,7 +115,7 @@ Backend --queries filtered by user id--> Postgres
 - **Per-user cap** and **total cap** per calendar month, set by env vars. Over a cap, `/analyze` returns `429 usage_limit` and makes no Claude call.
 - Saved answers cost nothing, so a cap never blocks replaying old hands.
 
-### Backlog: guest demo + account menu
+### Guest demo + account menu (done)
 
 - Opening the app without logging in shows a **guest demo**: the 3 sample hands, ready to replay, with their analysis.
 - Guests cannot save or analyze new hands (no Claude cost). Their saved answers for the samples are pre-computed once and shared.

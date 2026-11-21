@@ -83,6 +83,35 @@ def test_token_for_wrong_audience_is_401(real_login):
     assert r.status_code == 401
 
 
+def test_cannot_reach_supabase_is_503_not_invalid_token(monkeypatch):
+    app.dependency_overrides.clear()
+    monkeypatch.setenv("SUPABASE_URL", "https://test.supabase.co")
+
+    class Unreachable:
+        def get_signing_key_from_jwt(self, token):
+            raise jwt.PyJWKClientConnectionError("network down")
+
+    monkeypatch.setattr(auth, "key_client", lambda: Unreachable())
+    r = client.get("/hands", headers={"Authorization": "Bearer something"})
+    assert r.status_code == 503
+    assert r.json()["error"]["code"] == "auth_unavailable"
+
+
+def test_key_download_works_against_real_supabase():
+    """Network check: the real key download (https + certificates). Skipped offline."""
+    import os
+
+    import pytest
+    from dotenv import dotenv_values
+
+    url = dotenv_values(os.path.join(os.path.dirname(__file__), "..", ".env")).get("SUPABASE_URL")
+    if not url or os.environ.get("RUN_DB_TESTS") != "1":
+        pytest.skip("set RUN_DB_TESTS=1 to run network checks")
+    auth._key_client = None
+    os.environ["SUPABASE_URL"] = url
+    assert len(auth.key_client().get_signing_keys()) >= 1
+
+
 def test_health_needs_no_login():
     app.dependency_overrides.clear()
     assert client.get("/health").status_code == 200

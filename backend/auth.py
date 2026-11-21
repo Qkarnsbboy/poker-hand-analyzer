@@ -7,8 +7,10 @@ a token that passes these checks, never from the request body.
 """
 
 import os
+import ssl
 from typing import Optional
 
+import certifi
 import jwt
 from fastapi import Header
 
@@ -25,10 +27,16 @@ def supabase_url() -> str:
 
 
 def key_client() -> jwt.PyJWKClient:
-    """Downloads Supabase's public signing keys once, then reuses them."""
+    """Downloads Supabase's public signing keys once, then reuses them.
+
+    Uses certifi's list of trusted certificate authorities for the https download.
+    (Python from python.org on macOS has no list of its own, so https checks fail
+    without this. On servers it gives the same, known list everywhere.)
+    """
     global _key_client
     if _key_client is None:
-        _key_client = jwt.PyJWKClient(supabase_url() + "/auth/v1/.well-known/jwks.json")
+        trusted = ssl.create_default_context(cafile=certifi.where())
+        _key_client = jwt.PyJWKClient(supabase_url() + "/auth/v1/.well-known/jwks.json", ssl_context=trusted)
     return _key_client
 
 
@@ -50,6 +58,9 @@ def current_user_id(authorization: Optional[str] = Header(default=None)) -> str:
             audience="authenticated",
             issuer=supabase_url() + "/auth/v1",
         )
+    except jwt.PyJWKClientConnectionError:
+        # Not the user's fault: we could not download Supabase's keys to check the token.
+        raise ApiError(503, "auth_unavailable", "Can't reach Supabase to check your login. Try again in a moment.")
     except jwt.ExpiredSignatureError:
         raise ApiError(401, "unauthorized", "Your login expired. Please log in again.")
     except jwt.PyJWTError:

@@ -41,7 +41,7 @@ export function SettingsMenu({ theme, onTheme, unit, onUnit }: Props) {
         onClick={() => setOpen((o) => !o)}
         aria-label="Settings"
         aria-expanded={open}
-        className={"h-full rounded-lg px-2 text-page " + (open ? "bg-accent" : "bg-ink hover:opacity-85")}
+        className={"h-full rounded-lg border px-2 " + (open ? "border-accent bg-accent text-page" : "border-nav-border bg-nav text-nav-ink hover:opacity-85")}
       >
         <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
           <circle cx="12" cy="12" r="3" />

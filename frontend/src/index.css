@@ -141,3 +141,19 @@
     display: none;
   }
 }
+
+/* Header buttons (nav, settings, profile).
+   Dark themes: solid light buttons (the ink color on the page color).
+   Light themes: soft cream/white buttons with a thin border. */
+:root {
+  --nav: var(--ink);
+  --nav-ink: var(--page);
+  --nav-border: var(--ink);
+}
+
+[data-theme="light"],
+[data-theme="casino"] {
+  --nav: var(--raised);
+  --nav-ink: var(--ink);
+  --nav-border: var(--line-strong);
+}

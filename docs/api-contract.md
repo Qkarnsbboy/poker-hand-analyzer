@@ -174,6 +174,7 @@ All errors use one shape:
 | 404 | `not_found` | The hand does not exist for this user |
 | 422 | `invalid_request` | Malformed hand, or `action_index` is not a hero decision |
 | 429 | `usage_limit` | The user or the app is over its monthly Claude spend cap |
+| 503 | `auth_unavailable` | The backend could not reach Supabase to check the login token |
 | 502 | `llm_error` | LLM call failed or returned unparseable output |
 | 504 | `llm_timeout` | LLM call exceeded 30 seconds |
 

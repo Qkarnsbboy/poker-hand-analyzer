@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { mockFromUrl } from "../data/mock-analysis";
-import { analyzeWholeHand, getAnalysis, type AnalyzeResponse } from "../lib/analysis";
-import { loadAnalysis } from "../lib/storage";
+import { analyzeWholeHand, getAnalysis, knownAnswer, LockedError, type AnalyzeResponse } from "../lib/analysis";
 import type { Hand, Street } from "../lib/hand";
 import { STREETS } from "../lib/hand";
 import { BigBlindProvider } from "../lib/money";
@@ -16,6 +15,7 @@ const PLAY_INTERVAL_MS = 1000;
 export type AnalysisState =
   | { kind: "none" } // not hero's turn: empty panel
   | { kind: "loading" } // waiting on the backend
+  | { kind: "locked" } // guest's own hand: sign in to see analysis
   | { kind: "error"; message: string } // request failed
   | { kind: "ready"; data: AnalyzeResponse }; // got an answer
 
@@ -82,8 +82,8 @@ export function Replayer({ hand, initialIndex }: { hand: Hand; initialIndex: num
     return () => window.removeEventListener("keydown", onKey);
   }, [last, streetStarts]);
 
-  // Analysis. Usually already saved (pre-run when the hand was saved); if not, it's
-  // fetched here. Opening a hand also starts any decisions that aren't saved yet.
+  // Analysis. Usually already known (sample hand, or pre-run when the hand was saved);
+  // if not, it's fetched here. Opening a hand also starts any decisions still missing.
   const [analysis, setAnalysis] = useState<AnalysisState>({ kind: "none" });
   const [retry, setRetry] = useState(0); // bumping this re-runs the effect below
 
@@ -100,15 +100,18 @@ export function Replayer({ hand, initialIndex }: { hand: Hand; initialIndex: num
 
     // `live` goes false when the user moves on, so a late answer doesn't overwrite the panel.
     let live = true;
-    const saved = loadAnalysis(hand, index);
-    setAnalysis(saved ? { kind: "ready", data: saved } : { kind: "loading" });
-    if (saved) return;
+    const known = knownAnswer(hand, index);
+    if (known) return setAnalysis({ kind: "ready", data: known });
+
+    setAnalysis({ kind: "loading" });
     getAnalysis(hand, index)
       .then((data) => {
         if (live && data.action_index === index) setAnalysis({ kind: "ready", data });
       })
       .catch((e: Error) => {
-        if (live) setAnalysis({ kind: "error", message: e.message });
+        if (!live) return;
+        if (e instanceof LockedError) setAnalysis({ kind: "locked" });
+        else setAnalysis({ kind: "error", message: e.message });
       });
     return () => {
       live = false;

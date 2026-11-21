@@ -1,6 +1,10 @@
-// Mirrors POST /analyze in docs/api-contract.md.
+// Claude's analysis of a hero decision: the shape (mirrors POST /analyze in
+// docs/api-contract.md) and where each answer comes from.
+import { SAMPLE_HANDS } from "../data/sample-hands";
+import SAMPLE_ANALYSIS from "../data/sample-analysis.json";
+import { api } from "./api";
+import { getAccessToken } from "./auth";
 import type { Hand } from "./hand";
-import { handFingerprint, loadAnalysis, saveAnalysis } from "./storage";
 
 export type RecommendedAction = "fold" | "check" | "call" | "bet" | "raise";
 
@@ -31,53 +35,87 @@ export interface Exploitative {
   adjustment: string[]; // the recommended play, given everything
 }
 
-// Ask the backend to analyze one hero decision.
-// Throws on any failure; the caller shows "Analysis unavailable".
-// `signal` (optional) cancels the request in the browser.
-export async function fetchAnalysis(hand: Hand, actionIndex: number, signal?: AbortSignal): Promise<AnalyzeResponse> {
-  // Send the whole hand plus which action we're at.
-  const res = await fetch("/api/analyze", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ hand, action_index: actionIndex }),
-    signal,
-  });
-  // Not a 2xx: pull the message out of our error shape if we can.
-  if (!res.ok) {
-    const body = await res.json().catch(() => null);
-    console.warn(`[analyze] action ${actionIndex} failed`, res.status, body);
-    throw new Error(body?.error?.message ?? `HTTP ${res.status}`);
+// ----- Where an answer comes from -----
+//
+//   1. Sample hand, not edited  -> pre-made answer (data/sample-analysis.json). Free, for everyone.
+//   2. Already fetched          -> kept in memory for this visit.
+//   3. Guest, own hand          -> locked: "Sign in to get analysis".
+//   4. Logged in                -> the backend (/analyze). It returns a saved answer
+//                                  if it has one (free), or asks Claude and saves it.
+
+// Thrown for a guest's own hand: analysis needs an account.
+export class LockedError extends Error {
+  constructor() {
+    super("Sign in to get analysis.");
   }
-  const data: AnalyzeResponse = await res.json();
-  // Debug: see exactly what the backend returned (DevTools -> Console).
-  console.log(`[analyze] action ${actionIndex}`, data);
-  return data;
 }
 
-// ----- Pre-running a whole hand -----
-// When a hand is saved (or first opened), every hero decision is sent to Claude at once,
-// in parallel. Answers are saved, so the replayer shows them instantly.
+// Same content, same text: object keys in a fixed (sorted) order. The name is left out,
+// because renaming a hand does not change its analysis.
+export function handFingerprint(hand: Hand): string {
+  const { name: _name, ...content } = hand;
+  return stableJson(content);
+}
 
-// Requests still waiting on Claude, so nobody starts a second one for the same spot.
-const inFlight = new Map<string, Promise<AnalyzeResponse>>();
+function stableJson(value: unknown): string {
+  if (Array.isArray(value)) return "[" + value.map(stableJson).join(",") + "]";
+  if (value !== null && typeof value === "object") {
+    const keys = Object.keys(value).sort();
+    const parts: string[] = [];
+    for (const key of keys) {
+      const item = (value as Record<string, unknown>)[key];
+      if (item === undefined) continue;
+      parts.push(JSON.stringify(key) + ":" + stableJson(item));
+    }
+    return "{" + parts.join(",") + "}";
+  }
+  return JSON.stringify(value);
+}
 
 // Every action index where it's hero's turn.
 export function heroDecisions(hand: Hand): number[] {
-  return hand.actions.flatMap((a, i) => (a.position === hand.hero ? [i] : []));
+  const indexes: number[] = [];
+  hand.actions.forEach((action, index) => {
+    if (action.position === hand.hero) indexes.push(index);
+  });
+  return indexes;
 }
 
-// One decision: saved answer, else the request already running, else a new request.
-export function getAnalysis(hand: Hand, index: number): Promise<AnalyzeResponse> {
-  const saved = loadAnalysis(hand, index);
-  if (saved) return Promise.resolve(saved);
+// 1. Pre-made answer, if this is an unedited sample hand.
+function sampleAnswer(hand: Hand, index: number): AnalyzeResponse | null {
+  const sample = SAMPLE_HANDS.find((s) => s.id === hand.id);
+  if (!sample || handFingerprint(sample) !== handFingerprint(hand)) return null;
+  const answers = (SAMPLE_ANALYSIS as Record<string, Record<string, AnalyzeResponse>>)[hand.id];
+  return answers?.[String(index)] ?? null;
+}
 
-  const key = hand.id + "|" + handFingerprint(hand) + "|" + index;
+// 2. Answers fetched during this visit. Key: hand id | version | action index.
+const memory = new Map<string, AnalyzeResponse>();
+const inFlight = new Map<string, Promise<AnalyzeResponse>>(); // requests still running
+
+function memoryKey(hand: Hand, index: number): string {
+  return hand.id + "|" + handFingerprint(hand) + "|" + index;
+}
+
+// An answer we already have, without asking anyone. Null if we need to fetch it.
+export function knownAnswer(hand: Hand, index: number): AnalyzeResponse | null {
+  return sampleAnswer(hand, index) ?? memory.get(memoryKey(hand, index)) ?? null;
+}
+
+// One decision's answer. Throws LockedError for a guest's own hand.
+export async function getAnalysis(hand: Hand, index: number): Promise<AnalyzeResponse> {
+  const known = knownAnswer(hand, index);
+  if (known) return known;
+  if (!(await getAccessToken())) throw new LockedError();
+
+  // Reuse a request that is already running for this spot.
+  const key = memoryKey(hand, index);
   let request = inFlight.get(key);
   if (!request) {
     request = fetchAnalysis(hand, index)
-      .then((data) => {
-        saveAnalysis(hand, index, data);
-        return data;
+      .then((answer) => {
+        memory.set(key, answer);
+        return answer;
       })
       .finally(() => inFlight.delete(key)); // done or failed: a retry can start fresh
     inFlight.set(key, request);
@@ -85,7 +123,39 @@ export function getAnalysis(hand: Hand, index: number): Promise<AnalyzeResponse>
   return request;
 }
 
-// Every decision in the hand. Fire and forget; failures show up when you reach that spot.
-export function analyzeWholeHand(hand: Hand): void {
-  for (const i of heroDecisions(hand)) getAnalysis(hand, i).catch(() => {});
+// 4. Ask the backend about one decision.
+async function fetchAnalysis(hand: Hand, actionIndex: number): Promise<AnalyzeResponse> {
+  const answer = await api<AnalyzeResponse>("/analyze", {
+    method: "POST",
+    body: { hand, action_index: actionIndex },
+  });
+  // Debug: see exactly what the backend returned (DevTools -> Console).
+  console.log(`[analyze] action ${actionIndex}`, answer);
+  return answer;
+}
+
+// Logged in: load every saved answer for this hand in one request.
+async function loadSavedAnswers(hand: Hand): Promise<void> {
+  try {
+    const data = await api<{ results: Record<string, AnalyzeResponse> }>(
+      `/hands/${encodeURIComponent(hand.id)}/analysis`,
+    );
+    for (const [index, answer] of Object.entries(data.results)) {
+      memory.set(memoryKey(hand, Number(index)), answer);
+    }
+  } catch {
+    // Not saved yet (404) or offline: the per-decision requests below cover it.
+  }
+}
+
+// ----- Pre-running a whole hand -----
+// Logged in only. Loads saved answers, then asks for every decision still missing,
+// all at once, so the replayer shows them instantly. Guests: does nothing.
+export async function analyzeWholeHand(hand: Hand): Promise<void> {
+  if (!(await getAccessToken())) return;
+  await loadSavedAnswers(hand);
+  for (const index of heroDecisions(hand)) {
+    if (knownAnswer(hand, index)) continue;
+    getAnalysis(hand, index).catch(() => {}); // failures show when you reach that spot
+  }
 }

@@ -228,10 +228,16 @@ export function HandBuilder({ initial, onAnalyze }: { initial?: Hand; onAnalyze:
     return current ? replayAt(hand, draft.actions.length).pot : null;
   };
 
-  const analyze = () => {
+  const analyze = async () => {
     const hand = draftToHand(draft, initial?.id ?? newHandId());
-    if (!saveHand(hand)) setSaveError(true);
-    analyzeWholeHand(hand); // start Claude on every decision now, before you get there
+    try {
+      // Save first: answers are stored per saved hand.
+      await saveHand(hand);
+    } catch {
+      setSaveError(true);
+      return;
+    }
+    analyzeWholeHand(hand); // logged in: start Claude on every decision now, before you get there
     onAnalyze(hand);
   };
 

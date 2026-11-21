@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Hand } from "../lib/hand";
 import { formatMoney, useMoney } from "../lib/money";
 import { replayAt } from "../lib/replay";
-import { deleteHand, loadFavorites, loadHands, toggleFavorite } from "../lib/storage";
+import { deleteHand, listHands, setFavorite, type SavedHand } from "../lib/storage";
 import { PlayingCard } from "./PlayingCard";
 
 // Same columns for the header and every row.
@@ -10,16 +10,36 @@ const grid = "grid grid-cols-[1.5rem_minmax(0,1fr)_3.5rem_4rem_4.5rem_6rem_12rem
 const btn = "rounded-md px-2.5 py-1 text-sm font-semibold text-white";
 
 export function HandsList({ onOpen, onEdit, onNew }: { onOpen: (hand: Hand) => void; onEdit: (hand: Hand) => void; onNew: () => void }) {
-  const [hands, setHands] = useState<Hand[]>(loadHands);
+  const [rows, setRows] = useState<SavedHand[] | null>(null); // null = still loading
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [confirming, setConfirming] = useState<string | null>(null);
-  const [favorites, setFavorites] = useState<Set<string>>(loadFavorites);
   const { unit } = useMoney();
 
-  const remove = (id: string) => {
-    deleteHand(id);
-    setHands(loadHands());
-    setConfirming(null);
+  // Load the hands (from this browser for guests, from the database when logged in).
+  const reload = () => {
+    listHands()
+      .then((saved) => {
+        setRows(saved);
+        setLoadError(null);
+      })
+      .catch((e: Error) => setLoadError(e.message));
   };
+  useEffect(reload, []);
+
+  const remove = async (id: string) => {
+    setConfirming(null);
+    await deleteHand(id);
+    reload();
+  };
+
+  // Flip the star right away, then save it.
+  const toggleStar = async (id: string, favorite: boolean) => {
+    setRows((current) => (current ?? []).map((row) => (row.hand.id === id ? { ...row, favorite } : row)));
+    await setFavorite(id, favorite);
+  };
+
+  if (loadError) return <div className="p-10 text-center text-red-400">Couldn't load your hands: {loadError}</div>;
+  if (rows === null) return <div className="p-10 text-center text-ink-faint">Loading hands...</div>;
 
   return (
     <div className="space-y-2">
@@ -34,7 +54,7 @@ export function HandsList({ onOpen, onEdit, onNew }: { onOpen: (hand: Hand) => v
         <span>Pot</span>
         <span>Actions</span>
       </div>
-      {hands.map((h) => {
+      {rows.map(({ hand: h, favorite }) => {
         const hero = h.players.find((p) => p.position === h.hero)!;
         const pot = replayAt(h, h.actions.length).pot;
         const board = [...(h.board.flop ?? [null, null, null]), h.board.turn, h.board.river];
@@ -42,11 +62,11 @@ export function HandsList({ onOpen, onEdit, onNew }: { onOpen: (hand: Hand) => v
           <div key={h.id} className={grid + " rounded-2xl border border-line bg-panel py-3"}>
             <button
               type="button"
-              title={favorites.has(h.id) ? "Unfavorite" : "Favorite"}
-              onClick={() => setFavorites(toggleFavorite(h.id))}
-              className={"text-xl leading-none " + (favorites.has(h.id) ? "text-yellow-400" : "text-ink-faint hover:text-ink-dim")}
+              title={favorite ? "Unfavorite" : "Favorite"}
+              onClick={() => toggleStar(h.id, !favorite)}
+              className={"text-xl leading-none " + (favorite ? "text-yellow-400" : "text-ink-faint hover:text-ink-dim")}
             >
-              {favorites.has(h.id) ? "★" : "☆"}
+              {favorite ? "★" : "☆"}
             </button>
             <span className="font-bold truncate">{h.name}</span>
             <span>NLHE</span>
@@ -62,7 +82,7 @@ export function HandsList({ onOpen, onEdit, onNew }: { onOpen: (hand: Hand) => v
             </span>
             <span className="font-semibold">{formatMoney(pot, h.game.bb, unit)}</span>
             <span className="flex gap-1.5">
-              <button type="button" className="rounded-md bg-ink px-2.5 py-1 text-sm font-semibold text-page hover:opacity-85" onClick={() => onOpen(h)}>
+              <button type="button" className="rounded-md border border-nav-border bg-nav px-2.5 py-1 text-sm font-semibold text-nav-ink hover:opacity-85" onClick={() => onOpen(h)}>
                 Open
               </button>
               <button type="button" className={btn + " bg-green-600 hover:bg-green-500"} onClick={() => onEdit(h)}>

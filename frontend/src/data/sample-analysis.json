@@ -1,0 +1,597 @@
+{
+  "hand-001": {
+    "0": {
+      "action_index": 0,
+      "recommendation": {
+        "action": "raise",
+        "sizing": 15.0,
+        "confidence": "high"
+      },
+      "theory": {
+        "hero_range": [
+          "Hero's range here is a strong 3-bet range, and As Ah is the very top of it.",
+          "Aces are a pure value 3-bet that wants to build the pot and get stacks in."
+        ],
+        "villain_range": [
+          "Villain's range is the wide BB range that raised over the $2 posted blind, so it has many suited, connected and ace-x hands.",
+          "His range mixes strong hands with bluffs, but few hands that can continue happily against a 3-bet and a 4-bet."
+        ],
+        "board_texture": [
+          "N/A"
+        ],
+        "bet_sizing": [
+          "Out of position against a bet from the big blind, a 3x re-raise to $15 is a standard size that builds the pot and keeps weaker hands in.",
+          "With deep stacks, a moderate 3-bet size gives room to 4-bet or play a big pot after the flop."
+        ]
+      },
+      "exploitative": {
+        "theory_baseline": [
+          "Theory says 3-bet aces for value to about 3x."
+        ],
+        "player_type": [
+          "Loose-aggressive players raise wide and often call 3-bets with weak hands, or 4-bet bluff too much."
+        ],
+        "reads": [
+          "Villain is loose, plays lots of draws and overbluffs, so he will continue with many weak hands and bluff at us."
+        ],
+        "adjustment": [
+          "Raise to $15 for value so Villain's wide range pays us off, and keep the size modest so he keeps bluffing and calling with weaker hands."
+        ]
+      }
+    },
+    "2": {
+      "action_index": 2,
+      "recommendation": {
+        "action": "raise",
+        "sizing": 175.0,
+        "confidence": "high"
+      },
+      "theory": {
+        "hero_range": [
+          "Hero's button open range is wide, and AA is the top of it and always continues for value against a 3-bet."
+        ],
+        "villain_range": [
+          "Villain's BB 3-bet range is polarized, with premium pairs and big Broadway hands for value plus suited wheel aces and suited connectors as bluffs."
+        ],
+        "board_texture": [
+          "N/A"
+        ],
+        "bet_sizing": [
+          "Raising to $150 (3x) builds the pot with the best hand while keeping weaker hands and bluffs in, and the deep stacks leave room to get the rest in later."
+        ]
+      },
+      "exploitative": {
+        "theory_baseline": [
+          "Theory 4-bets with AA for value, most often to about 3x the 3-bet."
+        ],
+        "player_type": [
+          "A typical LAG 3-bets light with many suited and offsuit bluffs and tends to call or 5-bet too wide against a 4-bet."
+        ],
+        "reads": [
+          "Villain is loose, plays lots of draws, and overbluffs, so his 3-bet range has many hands that are far behind AA."
+        ],
+        "adjustment": [
+          "4-bet to $150 for value to get more money in against his wide range and let him continue with weaker hands; I picked the 3x size since it is a standard size and does not scare him off."
+        ]
+      }
+    },
+    "4": {
+      "action_index": 4,
+      "recommendation": {
+        "action": "call",
+        "sizing": null,
+        "confidence": "medium"
+      },
+      "theory": {
+        "hero_range": [
+          "Hero's 3-bet-calling range is strong with premium pairs and big Broadways, and AA is the top of it.",
+          "AA is an overpair that still has showdown value but is vulnerable to sets and two pair on this board."
+        ],
+        "villain_range": [
+          "Villain's 3-bet range has value pairs, AK, AQ, and some suited bluffs and Broadways.",
+          "Villain's flop bet can include KK, JJ, AK, KQ, flush draws, and air that continues as a small c-bet."
+        ],
+        "board_texture": [
+          "The Ks Jc 3s board is a dry-ish, high-card flop with a flush draw, favoring the 3-bettor's range of strong Broadways and overpairs.",
+          "Sets and two pair are few in number, so AA is ahead of most of Villain's betting range."
+        ],
+        "bet_sizing": [
+          "The small 35% pot bet gives Hero a cheap price, needing only 21% equity.",
+          "With an SPR of 5.5, raising builds a big pot but folds out worse hands and gets stacks in against the few hands that beat AA, so calling keeps Villain's bluffs and weaker holdings in."
+        ]
+      },
+      "exploitative": {
+        "theory_baseline": [
+          "The default play is to call with AA here, keeping Villain's range wide and controlling the pot."
+        ],
+        "player_type": [
+          "A typical LAG c-bets small with a wide range, including many draws and air, and keeps barreling."
+        ],
+        "reads": [
+          "Villain is loose, plays lots of draws, and tends to overbluff."
+        ],
+        "adjustment": [
+          "Call the flop and let Villain keep bluffing, then call down on later streets since he has many bluffs and few hands that beat AA."
+        ]
+      }
+    },
+    "6": {
+      "action_index": 6,
+      "recommendation": {
+        "action": "bet",
+        "sizing": 128.0,
+        "confidence": "medium"
+      },
+      "theory": {
+        "hero_range": [
+          "Hero's 3-bet-calling range on the button is capped at the top, with premium pairs like AA mostly 4-bet, but AA still sits near the top of this range.",
+          "AsAh holds the ace of spades, so it blocks some spade flush draws and is an overpair to the board."
+        ],
+        "villain_range": [
+          "Villain's 3-bet range includes AK, AQ, big pairs, and some suited bluffs, and his flop bet adds draws and some pairs.",
+          "After checking the turn, Villain has more medium pairs, draws and AK-type hands, with fewer sets and strong two pair."
+        ],
+        "board_texture": [
+          "The Ks Jc 3s board has a flush draw and straight draws, and the 4h gives gutshot and wheel combos but misses most flush draws.",
+          "The turn is mostly a blank, so Hero's overpair stays strong and Villain's check gives up some range advantage."
+        ],
+        "bet_sizing": [
+          "With SPR 3.0, a 75% pot bet sets up a river shove while charging draws and pairs like QQ, TT and AK.",
+          "A 75% pot turn bet is standard, and the larger sizes risk folding out worse hands while getting called only by hands that beat Hero."
+        ]
+      },
+      "exploitative": {
+        "theory_baseline": [
+          "The default is to bet about 75% pot on the turn for value and protection with an overpair."
+        ],
+        "player_type": [
+          "A LAG 3-bets wide and fires many draws, then often check-calls or check-raises with bluffs and semi-bluffs."
+        ],
+        "reads": [
+          "Villain is loose, plays lots of draws and tends to overbluff, so he is likely to call with worse pairs and draws."
+        ],
+        "adjustment": [
+          "Bet $128 for value, as Villain's wide range of draws and weaker pairs will keep paying, and call a check-raise decision carefully later."
+        ]
+      }
+    },
+    "9": {
+      "action_index": 9,
+      "recommendation": {
+        "action": "call",
+        "sizing": null,
+        "confidence": "medium"
+      },
+      "theory": {
+        "hero_range": [
+          "Hero's 3-bet-calling range on the button includes premium pairs like AA, which is an overpair to the board but only one pair.",
+          "AA is the top of Hero's one-pair hands but sits below Hero's sets and two pairs."
+        ],
+        "villain_range": [
+          "Villain's 3-bet range includes AK, AQ, KK, QQ, AA and some bluffs like suited wheel aces and 65s, which now make a straight.",
+          "Villain's value range here is mostly KK, JJ, two pairs and the straight, while his bluffs are missed draws like spades and AQ-type hands."
+        ],
+        "board_texture": [
+          "The K-J-3 flop with two spades and the 4-2 runout complete wheel straights like A5 and 65, which hurts Hero's overpair.",
+          "The flush draw missed on the river, so Villain's draw-heavy bluffs now have no showdown value and give Hero bluff-catchers to beat."
+        ],
+        "bet_sizing": [
+          "Villain's all-in 100% pot bet gives Hero 2-to-1 and Hero needs only 33% equity to call.",
+          "With SPR 1.0 this is the last bet, so Hero only has to be right against enough bluffs to justify a call."
+        ]
+      },
+      "exploitative": {
+        "theory_baseline": [
+          "Theory says AA is a bluff-catcher that calls against a pot-sized river jam because it beats many missed draws."
+        ],
+        "player_type": [
+          "LAG players bluff missed draws and overvalue aggression, so they jam the river with many busted hands."
+        ],
+        "reads": [
+          "Villain is loose, plays lots of draws and overbluffs, so he has more missed flush draws and air than a standard range."
+        ],
+        "adjustment": [
+          "Call the $400 because Villain's overbluffing makes AA a profitable bluff-catcher at only 33% required equity."
+        ]
+      }
+    }
+  },
+  "hand-002": {
+    "1": {
+      "action_index": 1,
+      "recommendation": {
+        "action": "call",
+        "sizing": null,
+        "confidence": "high"
+      },
+      "theory": {
+        "hero_range": [
+          "Pocket sixes are a solid mid pair that sits in the middle of Hero's defending range in the big blind.",
+          "The hand plays well as a call because it has good raw equity and set-mining value, but is not strong enough to build a big pot preflop."
+        ],
+        "villain_range": [
+          "Villain opens a wide range from the button, including many broadway hands, suited hands, and pairs.",
+          "A 4x open means Villain's range is still wide, with many hands that 66 is ahead of or flipping against."
+        ],
+        "board_texture": [
+          "N/A"
+        ],
+        "bet_sizing": [
+          "Hero needs 38% equity to call $15 into $25, and 66 has more than that against a wide button range.",
+          "Deep stacks and a large SPR favor calling to see a flop and realize equity, since a set can win a big pot.",
+          "A 3-bet with 66 would bloat the pot out of position and get called mostly by better hands, so calling is preferred."
+        ]
+      },
+      "exploitative": {
+        "theory_baseline": [
+          "Call with 66 in the big blind against a button open."
+        ],
+        "player_type": [
+          "A typical player at these stakes opens wide on the button and folds too often to flop pressure, but also c-bets a lot."
+        ],
+        "reads": [
+          "Villain is unknown with few reads, so there is no reason to deviate from the baseline."
+        ],
+        "adjustment": [
+          "Call, then play a straightforward game after the flop, check to the raiser and continue with hands that connect or have good equity."
+        ]
+      }
+    },
+    "2": {
+      "action_index": 2,
+      "recommendation": {
+        "action": "check",
+        "sizing": null,
+        "confidence": "medium"
+      },
+      "theory": {
+        "hero_range": [
+          "As the big blind who called a raise, Hero's range is wide, and a set of sixes is one of the strongest hands in it.",
+          "Standard strategy is to check to the preflop raiser rather than lead, so Hero checks and plans to trap or raise."
+        ],
+        "villain_range": [
+          "Villain opened the button, so his range is wide and includes many suited hands, broadways and pairs.",
+          "He has plenty of overcards, flush draws and straight draws, and only 43 beats Hero."
+        ],
+        "board_texture": [
+          "6h 5h 2s is a connected, two-tone board with flush and straight draws that favors the caller's low cards.",
+          "Hero's set is vulnerable to draws, but checking lets Hero build the pot by check-raising when Villain continues."
+        ],
+        "bet_sizing": [
+          "With an SPR of 24.5 stacks are deep, so Hero wants to build the pot gradually over several streets.",
+          "A check induces a c-bet that Hero can raise, and it protects Hero's checking range, which has many strong hands."
+        ]
+      },
+      "exploitative": {
+        "theory_baseline": [
+          "The default is to check to the raiser and use a check-raise with strong hands like sets."
+        ],
+        "player_type": [
+          "A typical player at these stakes c-bets this board often with a wide range, and calls raises with draws and pairs."
+        ],
+        "reads": [
+          "Villain is new to Hero with few reads, so there is no strong deviation to make from the default."
+        ],
+        "adjustment": [
+          "Check, then check-raise when Villain bets, since he will often c-bet with many hands that cannot fold to a raise, which builds the pot with Hero's set."
+        ]
+      }
+    },
+    "4": {
+      "action_index": 4,
+      "recommendation": {
+        "action": "raise",
+        "sizing": 160.0,
+        "confidence": "high"
+      },
+      "theory": {
+        "hero_range": [
+          "Hero's call range from the big blind includes many pairs, so a set of sixes is one of the strongest hands in it.",
+          "Hero checked the flop as the big blind, so the check range is wide and includes strong hands like this set."
+        ],
+        "villain_range": [
+          "Villain's button raising range is wide and has many overcards, suited broadways and hearts that missed or picked up draws.",
+          "Villain's bet range mixes pairs, flush draws, straight draws and some air; only 43 beats Hero here."
+        ],
+        "board_texture": [
+          "The 6h 5h 2s board is wet with a flush draw and straight draws, so Hero wants to build the pot and charge draws.",
+          "Only 43 makes a straight and Hero's set is nearly the nuts, so Hero is far ahead of Villain's range."
+        ],
+        "bet_sizing": [
+          "Villain bet 100% pot, so a raise to $160 (4x) builds a big pot with a deep SPR while keeping worse hands and draws in.",
+          "A raise of this size denies equity to hearts and overcards and keeps Villain's bluffs and draws willing to continue."
+        ]
+      },
+      "exploitative": {
+        "theory_baseline": [
+          "Raise for value with the set to charge draws and build the pot."
+        ],
+        "player_type": [
+          "A typical player at these stakes bets the flop often as the preflop raiser and calls raises with draws and pairs, rarely folding strong draws."
+        ],
+        "reads": [
+          "Villain is new to Hero and gives few reads, so there is nothing to push away from the standard play."
+        ],
+        "adjustment": [
+          "Raise to $160 for value, since Villain's weaker pairs and draws will pay and Hero is nearly never behind."
+        ]
+      }
+    },
+    "6": {
+      "action_index": 6,
+      "recommendation": {
+        "action": "bet",
+        "sizing": 210.0,
+        "confidence": "medium"
+      },
+      "theory": {
+        "hero_range": [
+          "Hero check-raised the flop, so the range is strong: sets, straights draws, flush draws and some combo draws, and 66 is a top set in it.",
+          "With a set on a wet board, Hero wants to build the pot while the flush is only possible, not yet made."
+        ],
+        "villain_range": [
+          "Villain called a check-raise on 6h5h2s, so the range is made hands, flush draws, pair plus draw hands and straight draws.",
+          "The king of hearts completes some flushes, but Villain's range also has many one-pair hands and missed draws that lose to Hero."
+        ],
+        "board_texture": [
+          "The Kh brings a third heart, so Villain's heart hands improve and flush completion is the main scare card.",
+          "Straight draws like 43 and 74 are still live, so the board stays dynamic and Hero should charge draws."
+        ],
+        "bet_sizing": [
+          "With SPR 3.1, a 75% pot bet leaves a clear jam on the river and keeps worse hands in.",
+          "A 75% pot bet gets value from pairs, draws and flush draws, and it protects against a heart-free river."
+        ]
+      },
+      "exploitative": {
+        "theory_baseline": [
+          "Bet about 75% pot for value and protection with a strong made hand like top set."
+        ],
+        "player_type": [
+          "A typical player at these stakes calls down with any flush draw or pair and rarely folds a made hand on the turn."
+        ],
+        "reads": [
+          "Villain is an unknown European or Russian player with few reads, so there is nothing to deviate from the baseline."
+        ],
+        "adjustment": [
+          "Bet $210 for value, since Villain will call with many worse hands and pot control is not needed with a set at this SPR."
+        ]
+      }
+    },
+    "8": {
+      "action_index": 8,
+      "recommendation": {
+        "action": "bet",
+        "sizing": 360.0,
+        "confidence": "medium"
+      },
+      "theory": {
+        "hero_range": [
+          "Hero's check-raise flop and turn bet line is strong, and 66 is a full house, near the top of the range after the board pairs.",
+          "Hero's range still holds sets, flush draws, and other strong made hands, so betting for value is balanced."
+        ],
+        "villain_range": [
+          "Villain called a flop check-raise and a turn bet, so he holds flushes, sets, two pair, overpairs, and some strong draws or Kx hands.",
+          "Only 55 and KK beat Hero, and both are a small part of his range, while most of his calling range is flushes and weaker one-pair or two-pair hands."
+        ],
+        "board_texture": [
+          "The 5 pairs the board and makes 66 a full house, while the heart flush is already complete on board for hands like Ah-x.",
+          "Villain's flushes and strong pairs can pay off a value bet, and few hands beat Hero."
+        ],
+        "bet_sizing": [
+          "With $480 in the pot and SPR 1.6, a 75% pot bet gets value from flushes and trips-type hands without needing a jam.",
+          "A 75% sizing is big enough to extract value and still gets calls from many second-best hands."
+        ]
+      },
+      "exploitative": {
+        "theory_baseline": [
+          "Bet about 75% pot for value with a full house."
+        ],
+        "player_type": [
+          "A typical player at these stakes calls down wide with flushes and one-pair hands and rarely folds a made flush."
+        ],
+        "reads": [
+          "Villain is unknown with few reads, so there is no clear tendency to adjust for."
+        ],
+        "adjustment": [
+          "Bet $360 for value, since Villain's made hands will call and a large but not all-in size keeps more of his range calling."
+        ]
+      }
+    }
+  },
+  "hand-003": {
+    "1": {
+      "action_index": 1,
+      "recommendation": {
+        "action": "call",
+        "sizing": null,
+        "confidence": "high"
+      },
+      "theory": {
+        "hero_range": [
+          "Hero's 9h8h is a suited connector that sits in the middle of the big blind's defending range, with good playability and mostly a call.",
+          "Hero's strong hands like QQ+ and AK mostly 3-bet, while suited connectors like this are mainly calls with a few mixed 3-bet bluffs."
+        ],
+        "villain_range": [
+          "Villain opens a wide range from the button, including many suited hands, broadways, and small pairs, plus premium hands."
+        ],
+        "board_texture": [
+          "N/A"
+        ],
+        "bet_sizing": [
+          "Hero needs 33% equity to call $4 into $8, and 9h8h has comfortably more than that against a wide button range.",
+          "With deep stacks, calling keeps the pot small out of position while realizing equity through straights and flushes."
+        ]
+      },
+      "exploitative": {
+        "theory_baseline": [
+          "Call with 9h8h and defend the big blind against the button raise."
+        ],
+        "player_type": [
+          "A TAG opens a solid, fairly wide button range and continues with strong c-bets on many flops, so calling with playable suited hands is standard."
+        ],
+        "reads": [
+          "Villain rarely bluff-raises the turn, so Hero can float and continue more comfortably after calling when the board connects."
+        ],
+        "adjustment": [
+          "Call $4 and play postflop, since 9h8h has good implied odds against a disciplined opponent and a 3-bet bloats the pot out of position."
+        ]
+      }
+    },
+    "2": {
+      "action_index": 2,
+      "recommendation": {
+        "action": "check",
+        "sizing": null,
+        "confidence": "high"
+      },
+      "theory": {
+        "hero_range": [
+          "As the big blind who called a raise, Hero's range is wide and uncapped, and 9h8h is a gutshot-plus-flush-draw style hand with an open-ended straight draw and a heart draw.",
+          "Hero must check to the preflop raiser on this flop rather than lead, so this hand goes into the checking range as a strong semi-bluff candidate for check-raising or calling."
+        ],
+        "villain_range": [
+          "Villain's button opening range is wide and contains many overpairs, ace-high hands, Tx pairs and suited connectors.",
+          "Villain will continue betting often on this board with his range advantage in high pairs and top pair."
+        ],
+        "board_texture": [
+          "Th 7h 2c is a fairly dry-ish two-tone board where Hero's 9h8h has an open-ended straight draw and a flush draw, giving lots of equity.",
+          "The board favors Villain's range with overpairs and Tx, but Hero has many draws and sets to defend with."
+        ],
+        "bet_sizing": [
+          "With an SPR this deep, building the pot out of position with a draw is better done by check-raising after Villain bets than by leading.",
+          "Checking keeps the pot small and lets Hero realize equity or check-raise against Villain's continuation bet."
+        ]
+      },
+      "exploitative": {
+        "theory_baseline": [
+          "Check to the preflop raiser and defend with calls or check-raises against a bet."
+        ],
+        "player_type": [
+          "A TAG continuation bets often on this board with a wide range and folds many weak hands to a check-raise."
+        ],
+        "reads": [
+          "Villain rarely bluff-raises the turn, so his turn aggression usually means real strength."
+        ],
+        "adjustment": [
+          "Check, then call or check-raise the flop as a semi-bluff when Villain bets, and slow down on the turn if Villain keeps firing."
+        ]
+      }
+    },
+    "4": {
+      "action_index": 4,
+      "recommendation": {
+        "action": "call",
+        "sizing": null,
+        "confidence": "medium"
+      },
+      "theory": {
+        "hero_range": [
+          "Hero's BB defending range is wide, and 9h8h is a strong open-ended straight draw with a flush draw, a big combo draw.",
+          "Hero has no made hand but has plenty of equity, so it sits in the continue range as a call or occasional raise."
+        ],
+        "villain_range": [
+          "Villain's button raising range has many overpairs, Tx, and strong Ax, plus c-bets with floats and backdoor draws.",
+          "Villain's 67% pot bet is value-heavy with some bluffs, so sets and two pair are rare but possible."
+        ],
+        "board_texture": [
+          "Th 7h 2c is a semi-wet board with a flush draw and straight draws that connect well with Hero's BB range.",
+          "Hero's 9h8h has a flush draw and an open-ended straight draw, so it has strong equity against Villain's value hands."
+        ],
+        "bet_sizing": [
+          "Hero needs 29% equity and a combo draw like this has well over that, so continuing is clearly correct.",
+          "With an SPR above 16, raising builds a big pot out of position with a draw, so calling keeps the pot manageable and keeps Hero's options open on later streets."
+        ]
+      },
+      "exploitative": {
+        "theory_baseline": [
+          "Continue with this combo draw, mostly by calling and sometimes raising as a semi-bluff."
+        ],
+        "player_type": [
+          "A TAG c-bets this board with a value-weighted range and often folds to raises without a strong hand, but he also continues with strong hands and 4-bets or jams over big raises."
+        ],
+        "reads": [
+          "Villain rarely bluff-raises the turn, so when he bets or raises later his range is strong and Hero's draws should respect it."
+        ],
+        "adjustment": [
+          "Call and see the turn with the draw, since the equity is good and Villain's range is strong enough that a raise risks getting jammed on with little fold equity."
+        ]
+      }
+    },
+    "6": {
+      "action_index": 6,
+      "recommendation": {
+        "action": "check",
+        "sizing": null,
+        "confidence": "medium"
+      },
+      "theory": {
+        "hero_range": [
+          "Hero's check-raise range on this flop mixes strong made hands with flush and straight draws, and 9h8h is a combo draw with a gutshot and a flush draw.",
+          "Hero has a gutshot straight draw and a heart flush draw, but only 9-high right now, so the hand has equity but no showdown value."
+        ],
+        "villain_range": [
+          "Villain called a check-raise with pairs like Tx, 77, overpairs, some sets and strong draws, and the King adds some top pair and two pair hands to his range.",
+          "Villain's range is capped less than Hero's bluffs would like, so many of his calls beat 9-high and few fold to a big bet."
+        ],
+        "board_texture": [
+          "The Ks is a brick for the hearts but it helps Villain's Kx hands and makes Hero's overall range slightly weaker.",
+          "The flush draw and gutshot still give Hero around 12 outs, but a blank on the river will leave Hero with nothing."
+        ],
+        "bet_sizing": [
+          "At SPR 2.3 any large bet commits most of Hero's stack, so a bluff must work often to be profitable.",
+          "Checking keeps the pot small and lets Hero realize equity cheaply, and Hero can still call or raise some turn bets depending on what Villain does."
+        ]
+      },
+      "exploitative": {
+        "theory_baseline": [
+          "Mix between checking and betting the combo draw as a semi-bluff, with checking a good option because the King hurts Hero's range."
+        ],
+        "player_type": [
+          "A solid TAG will value bet his strong hands and call down with pairs, so he will fold less than a weak player against a large semi-bluff."
+        ],
+        "reads": [
+          "Villain is a solid reg who rarely bluff-raises the turn, so a check will usually be answered by a value bet or a check back instead of a bluff."
+        ],
+        "adjustment": [
+          "Check and see a cheap card or a bet; since Villain rarely bluffs, a bet from him will usually be real and Hero can call with a draw only when the price is right, otherwise fold."
+        ]
+      }
+    },
+    "8": {
+      "action_index": 8,
+      "recommendation": {
+        "action": "call",
+        "sizing": null,
+        "confidence": "low"
+      },
+      "theory": {
+        "hero_range": [
+          "Hero's check-raise and turn bet range mixes strong made hands with flush and straight draws, and 9h8h is a combo draw with a heart flush draw and a gutshot-type straight draw."
+        ],
+        "villain_range": [
+          "After calling a flop check-raise and then jamming over a turn bet, Villain's range is polarized to sets, two pair and some strong overpairs or bluffs."
+        ],
+        "board_texture": [
+          "The Ks turn gives Villain's range many strong K-x hands and pairs, while the Th7h flush and straight draws leave Hero with many outs of roughly 12 to 15 to improve."
+        ],
+        "bet_sizing": [
+          "Hero needs 30% equity to call $119 into $281, and the 9h8h draw has about that much equity against a value-heavy jam, making this a close call."
+        ]
+      },
+      "exploitative": {
+        "theory_baseline": [
+          "Theory makes this a marginal call with a strong draw getting 30% pot odds."
+        ],
+        "player_type": [
+          "A typical TAG jams the turn mostly for value with sets, two pair and strong made hands, and bluffs less than theory suggests."
+        ],
+        "reads": [
+          "Villain is a solid reg who rarely bluff-raises the turn, so his jam is heavily weighted toward value."
+        ],
+        "adjustment": [
+          "Calling is close and thin, since Villain rarely bluffs and Hero's equity is near the required 30%, but the combo draw has enough outs and implied pot value to continue rather than fold."
+        ]
+      }
+    }
+  }
+}
