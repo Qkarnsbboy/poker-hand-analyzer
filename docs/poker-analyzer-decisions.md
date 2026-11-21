@@ -115,6 +115,13 @@ Backend --queries filtered by user id--> Postgres
 - **Per-user cap** and **total cap** per calendar month, set by env vars. Over a cap, `/analyze` returns `429 usage_limit` and makes no Claude call.
 - Saved answers cost nothing, so a cap never blocks replaying old hands.
 
+### Backlog: guest demo + account menu
+
+- Opening the app without logging in shows a **guest demo**: the 3 sample hands, ready to replay, with their analysis.
+- Guests cannot save or analyze new hands (no Claude cost). Their saved answers for the samples are pre-computed once and shared.
+- A **user icon, top right**: "Sign in" for guests; email and "Sign out" when logged in.
+- Logging in switches to the user's own hands.
+
 ### Moving existing data
 
 - On first login, if the browser still has hands in local storage, the app offers a one-time import into the account.

@@ -1,11 +1,9 @@
 import copy
 
-import pytest
 from fastapi.testclient import TestClient
 
 import llm
 from main import app
-from models import Exploitative, Theory
 
 # Run with: .venv/bin/python -m pytest -q
 
@@ -15,41 +13,7 @@ client = TestClient(app)
 from tests.hands import HAND
 
 
-# A fake Claude, so tests are free and fast. Records the prompt it was given.
-class FakeClaude:
-    def __init__(self):
-        self.answer = llm.LLMAnalysis(
-            action="call",
-            sizing=None,
-            confidence="medium",
-            theory=Theory(
-                hero_range=["Hero's range here."],
-                villain_range=["Villain's range here."],
-                board_texture=["The board."],
-                bet_sizing=["The price."],
-            ),
-            exploitative=Exploitative(
-                theory_baseline=["Call."],
-                player_type=["LAGs bluff more."],
-                reads=["Villain seems to overbluff."],
-                adjustment=["Call more."],
-            ),
-        )
-        self.error = None
-        self.prompt = None
-
-    def __call__(self, system, user):
-        self.prompt = user
-        if self.error:
-            raise self.error
-        return self.answer
-
-
-@pytest.fixture(autouse=True)
-def fake(monkeypatch):
-    f = FakeClaude()
-    monkeypatch.setattr(llm, "ask_claude", f)
-    return f
+# The fake Claude, fake database and fake login are set up in conftest.py.
 
 
 def test_health():

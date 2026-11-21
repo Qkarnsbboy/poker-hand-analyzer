@@ -64,6 +64,8 @@ def log_call(entry: dict) -> None:
 class LLMError(Exception):
     """Claude failed or gave something unusable. -> 502"""
 
+    call: dict = {}  # summary of the failed call (set by ask_claude), for the database
+
 
 class LLMTimeout(LLMError):
     """Claude took longer than 30 seconds. -> 504"""
@@ -92,23 +94,48 @@ def client() -> anthropic.Anthropic:
     return _client
 
 
-def ask_claude(system: str, user: str) -> LLMAnalysis:
-    """Send the prompt, get back a validated LLMAnalysis. Every call is logged, success or not."""
+def call_summary(entry: dict) -> dict:
+    """The parts of a call we store in the database (llm_calls): model, status, tokens, cost, time."""
+    usage = entry.get("usage", {})
+    return {
+        "model": entry["model"],
+        "status": entry["status"],
+        "input_tokens": usage.get("input_tokens", 0),
+        "output_tokens": usage.get("output_tokens", 0),
+        "cost_usd": usage.get("cost_usd", 0),
+        "seconds": entry.get("seconds"),
+    }
+
+
+def ask_claude(system: str, user: str) -> tuple[LLMAnalysis, dict]:
+    """Send the prompt. Returns (the validated answer, a summary of the call for the database).
+
+    Every call is logged, success or not. On failure, the raised LLMError carries the
+    call summary as `error.call`, so a failed call can be recorded too.
+    """
     model = os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-5-5")
     started = time.time()
     entry = {"time": datetime.now().isoformat(timespec="seconds"), "model": model, "prompt": user, "status": "crash"}
 
     try:
         result = _call(model, system, user, entry)
-        entry["status"] = "ok"
-        return result
     except LLMError as e:
         entry["status"] = "timeout" if isinstance(e, LLMTimeout) else "error"
         entry["error"] = str(e)
-        raise
-    finally:
         entry["seconds"] = round(time.time() - started, 1)
         log_call(entry)
+        e.call = call_summary(entry)
+        raise
+    except Exception:
+        # Something unexpected: still log it, then let it fail.
+        entry["seconds"] = round(time.time() - started, 1)
+        log_call(entry)
+        raise
+
+    entry["status"] = "ok"
+    entry["seconds"] = round(time.time() - started, 1)
+    log_call(entry)
+    return result, call_summary(entry)
 
 
 def _call(model: str, system: str, user: str, entry: dict) -> LLMAnalysis:
