@@ -93,8 +93,8 @@ export function toggleFavorite(id: string): Set<string> {
 // decisions only). Each entry remembers a fingerprint of the hand it was made for,
 // so editing the hand throws the old answers away.
 
-// v3: bullet buckets + hand-strength facts. Answers saved in older formats are ignored and re-run.
-const ANALYSIS_KEY = "poker.analysis.v3";
+// v4: hero_range bucket, sizing menu. Answers saved in older formats are ignored and re-run.
+const ANALYSIS_KEY = "poker.analysis.v4";
 
 interface SavedAnalysis {
   fingerprint: string;

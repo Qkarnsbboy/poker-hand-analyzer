@@ -80,7 +80,7 @@ class Recommendation(BaseModel):
 
 # Theory, split into four buckets. Each bucket is a list of short bullets.
 class Theory(BaseModel):
-    my_range: list[str]  # Hero's range here, where Hero's hand fits, blockers
+    hero_range: list[str]  # Hero's range here, and where Hero's hand fits in it
     villain_range: list[str]  # the hands Villain can have, given the action
     board_texture: list[str]  # how the board changes things
     bet_sizing: list[str]  # pot odds, SPR, sizing

@@ -23,7 +23,7 @@ class FakeClaude:
             sizing=None,
             confidence="medium",
             theory=Theory(
-                my_range=["Hero's range here."],
+                hero_range=["Hero's range here."],
                 villain_range=["Villain's range here."],
                 board_texture=["The board."],
                 bet_sizing=["The price."],
@@ -100,6 +100,11 @@ def test_prompt_gets_hand_strength(fake):
     client.post("/analyze", json={"hand": HAND, "action_index": 9})
     assert "Hand strength (already calculated, correct):" in fake.prompt
     assert "Straight: 65, A5" in fake.prompt
+
+
+def test_preflop_board_texture_is_na():
+    r = client.post("/analyze", json={"hand": HAND, "action_index": 0})
+    assert r.json()["theory"]["board_texture"] == ["N/A"]
 
 
 def test_no_hand_strength_preflop(fake):

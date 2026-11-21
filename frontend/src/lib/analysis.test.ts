@@ -18,7 +18,7 @@ function fakeStorage() {
 const answer = (i: number): AnalyzeResponse => ({
   action_index: i,
   recommendation: { action: "call", sizing: null, confidence: "medium" },
-  theory: { my_range: ["a"], villain_range: ["b"], board_texture: ["c"], bet_sizing: ["d"] },
+  theory: { hero_range: ["a"], villain_range: ["b"], board_texture: ["c"], bet_sizing: ["d"] },
   exploitative: { theory_baseline: ["e"], player_type: ["f"], reads: [], adjustment: ["g"] },
 });
 let calls: number[];

@@ -37,7 +37,7 @@ Called once per hero decision, all in parallel, when a hand is saved from the bu
     "confidence": "medium"
   },
   "theory": {
-    "my_range": ["Hero's overpair is in the middle of Hero's range here."],
+    "hero_range": ["Hero's overpair is in the middle of Hero's range here."],
     "villain_range": ["Villain's raise range is mostly two pair and sets."],
     "board_texture": ["The two hearts give Villain flush draws to semi-bluff with."],
     "bet_sizing": ["Hero gets 3:1, so Hero needs 25% equity to call."]
@@ -55,7 +55,7 @@ Called once per hero decision, all in parallel, when a hand is saved from the bu
 - `sizing`: total amount (same rule as the data model), `null` unless the action is bet or raise
 - `confidence`: high, medium, low
 - `theory`: four buckets, each a list of 1 to 3 short bullets
-  - `my_range`: Hero's range here, where Hero's hand fits, blockers
+  - `hero_range`: Hero's range here, and where Hero's hand fits in it
   - `villain_range`: Villain's possible hands, given the action
   - `board_texture`: how the board affects both ranges
   - `bet_sizing`: pot odds, SPR, sizing

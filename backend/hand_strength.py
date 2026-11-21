@@ -139,22 +139,33 @@ def combos_text(count: int) -> str:
     return f"{count} combos"
 
 
-def describe(strength: HandStrength) -> str:
-    """The lines that go into the prompt."""
+def group_line(group: HandGroup, show_counts: bool) -> str:
+    """One line for the prompt, e.g. '  - Full House: KK (3 combos)'."""
+    line = f"  - {group.category}: {group.hands}"
+    if show_counts:
+        line += f" ({combos_text(group.combos)})"
+    return line
+
+
+def describe(strength: HandStrength, show_counts: bool = False) -> str:
+    """The lines that go into the prompt.
+
+    Combo counts only matter in condensed river spots, so they are left out
+    unless show_counts is True.
+    """
     lines = [f"Hero's hand: {strength.hero_hand}."]
 
-    beat_count = sum(group.combos for group in strength.beats_hero)
-    if beat_count == 0:
+    if not strength.beats_hero:
         lines.append("No Villain hand beats Hero (Hero has the nuts).")
     else:
-        lines.append(f"Hands that beat Hero ({beat_count} of {strength.total_combos} combos):")
+        lines.append("Hands that beat Hero:")
         for group in strength.beats_hero:
-            lines.append(f"  - {group.category}: {group.hands} ({combos_text(group.combos)})")
+            lines.append(group_line(group, show_counts))
 
     if strength.ties_hero:
         lines.append("Hands that tie Hero (split pot):")
         for group in strength.ties_hero:
-            lines.append(f"  - {group.category}: {group.hands} ({combos_text(group.combos)})")
+            lines.append(group_line(group, show_counts))
 
     lines.append("Every other hand loses to Hero.")
     return "\n".join(lines)

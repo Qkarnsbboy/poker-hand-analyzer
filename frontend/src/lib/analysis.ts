@@ -17,7 +17,7 @@ export interface AnalyzeResponse {
 
 // Theory, in four buckets. Each bucket is a list of short bullets.
 export interface Theory {
-  my_range: string[]; // Hero's range, where Hero's hand fits, blockers
+  hero_range: string[]; // Hero's range, and where Hero's hand fits in it
   villain_range: string[]; // Villain's possible hands, given the action
   board_texture: string[]; // how the board changes things
   bet_sizing: string[]; // pot odds, SPR, sizing

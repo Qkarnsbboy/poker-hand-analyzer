@@ -12,14 +12,32 @@ const ACTION_STYLE: Record<RecommendedAction, string> = {
   raise: "bg-red-600 border-red-400",
 };
 
-export function ActionBox({ rec, colorClass }: { rec: AnalyzeResponse["recommendation"]; colorClass?: string }) {
+// Same dark red as the All-in button in the hand builder.
+const ALL_IN_STYLE = "bg-red-900 border-red-700";
+
+export function ActionBox({
+  rec,
+  colorClass,
+  allInTotal,
+}: {
+  rec: AnalyzeResponse["recommendation"];
+  colorClass?: string;
+  allInTotal?: number; // Hero's whole stack for this street; a bet or raise this big is all-in
+}) {
   const { format } = useMoney();
+
+  // A bet or raise of Hero's whole stack shows as "All-in".
+  const isAllIn = rec.sizing !== null && allInTotal !== undefined && rec.sizing >= allInTotal;
+  const label = isAllIn ? "all-in" : rec.action;
+  let color = colorClass ?? ACTION_STYLE[rec.action];
+  if (isAllIn) color = ALL_IN_STYLE;
+
   return (
     <div
-      className={(colorClass ?? ACTION_STYLE[rec.action]) + " h-28 shrink-0 rounded-2xl border-2 text-white flex flex-col items-center justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_2px_8px_rgba(0,0,0,0.3)]"}
+      className={color + " h-28 shrink-0 rounded-2xl border-2 text-white flex flex-col items-center justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_2px_8px_rgba(0,0,0,0.3)]"}
     >
       <div className="text-4xl font-black uppercase tracking-wider drop-shadow">
-        {rec.action}
+        {label}
         {rec.sizing !== null && <span className="ml-3">{format(rec.sizing)}</span>}
       </div>
       <div className="mt-1 text-xs font-semibold uppercase tracking-wide text-white/80">{rec.confidence} confidence</div>
@@ -77,7 +95,15 @@ function Accordion({ title, buckets }: { title: string; buckets: Bucket[] }) {
 }
 
 // The right panel. Shows one of four things depending on `state`.
-export function AnalysisPanel({ state, onRetry }: { state: AnalysisState; onRetry: () => void }) {
+export function AnalysisPanel({
+  state,
+  onRetry,
+  allInTotal,
+}: {
+  state: AnalysisState;
+  onRetry: () => void;
+  allInTotal: number; // Hero's whole stack for this street
+}) {
   // 1. Not hero's turn: empty.
   if (state.kind === "none") return null;
 
@@ -109,11 +135,11 @@ export function AnalysisPanel({ state, onRetry }: { state: AnalysisState; onRetr
   const exploitative = analysis.exploitative;
   return (
     <div className="absolute inset-4 flex flex-col gap-3 overflow-y-auto no-scrollbar">
-      <ActionBox rec={analysis.recommendation} />
+      <ActionBox rec={analysis.recommendation} allInTotal={allInTotal} />
       <Accordion
         title="Theory"
         buckets={[
-          { label: "My range", bullets: theory.my_range },
+          { label: "Hero's range", bullets: theory.hero_range },
           { label: "Villain's range", bullets: theory.villain_range },
           { label: "Board texture", bullets: theory.board_texture },
           { label: "Bet sizing", bullets: theory.bet_sizing },

@@ -5,7 +5,7 @@ export const mockAnalysis: AnalyzeResponse = {
   action_index: 9,
   recommendation: { action: "call", sizing: null, confidence: "medium" },
   theory: {
-    my_range: ["AA is near the top of Hero's range here.", "Hero's aces block A5, the wheel."],
+    hero_range: ["AA is near the top of Hero's range here.", "Hero's aces block A5, the wheel."],
     villain_range: ["Value: sets and A5.", "Bluffs: missed spade draws and QT."],
     board_texture: ["The flush missed.", "The 2 completes the wheel, so most draws busted."],
     bet_sizing: ["Hero needs 33% equity to call $400 into $800.", "SPR is 1, so this is the last decision."],

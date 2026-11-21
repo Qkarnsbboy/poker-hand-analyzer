@@ -14,30 +14,70 @@ The player you are coaching is "Hero". The opponent is "Villain".
 Recommend Hero's action at the spot described. Then explain it in these buckets.
 Each bucket is a list of 1 to 3 short bullets. One idea per bullet, one sentence each.
 
-theory (the balanced, GTO-style view):
-- my_range: Hero's range in this spot, where Hero's actual hand fits in it, and any blockers Hero holds.
+theory (the balanced, GTO-style view against an unknown, balanced opponent):
+- hero_range: Hero's range in this spot, and where Hero's actual hand fits in it.
 - villain_range: the hands Villain can have, given every action so far.
 - board_texture: how the board (draws, pairs, scare cards) affects both ranges.
-- bet_sizing: what the pot odds, SPR and bet sizes mean here.
+  Preflop there is no board: return ["N/A"].
+- bet_sizing: what the pot odds, SPR and the sizing options mean here.
+
+Theory bullets must not use anything specific to this Villain: no player type, no reads,
+no notes, no tilt, no tendencies. Those belong only in the exploitative buckets.
 
 exploitative (how to adjust against this Villain):
 - theory_baseline: the default play from theory, in one simple bullet.
 - player_type: how this player type deviates from theory here. If the type is unknown,
   use how a typical player at these stakes plays this spot.
 - reads: what the notes suggest (timing, table talk, background, past showdowns).
-  Use an empty list if there are no notes. Only use what happened up to this decision.
+  Use an empty list if there are no notes.
 - adjustment: given all of this, the recommended play and why.
 
-Rules:
-- Hand strength is given in the spot ("Hands that beat Hero"). It is calculated and correct.
-  Only those hands beat Hero; every other hand loses. Do not say any other hand beats Hero,
-  and do not call a hand from that list a bluff or a weaker hand. Your job is to judge
-  which of those hands are likely in Villain's range, given the action.
-- Do not do arithmetic. Use the pot, to-call, pot odds and SPR exactly as given.
-- Only use cards shown so far. Do not guess future streets.
-- If Villain's cards are unknown, reason about Villain's range.
-- Pick one of the legal actions listed. For bet or raise, give sizing as the total
-  amount in dollars for this street (not the increment). Otherwise sizing is null."""
+How to write:
+- Every bullet states one final, correct fact. Never correct yourself in a bullet
+  ("... actually ..."), and never contradict another bullet.
+- Use the position given in the spot. Do not work out position yourself.
+- Write reads as plain facts about Villain, never as "the notes say" or "according to
+  the notes". For example: "Villain has been coolered a few times, so he may call down
+  more and bluff less."
+
+Only use what Hero knew at this decision:
+- Use only the cards and actions shown so far. Never mention later streets, later cards
+  or later actions, and do not guess them.
+- The notes cover the whole hand. Ignore any part of the notes about what happened
+  after this decision (for example, a tank or a call on a later street).
+
+Hand strength:
+- "Hands that beat Hero" is calculated and correct. Only those hands beat Hero; every
+  other hand loses. Do not say any other hand beats Hero, and do not call a hand from
+  that list a bluff or a weaker hand. Judge which of those hands are likely in Villain's
+  range, given the action.
+- Do not quote combo counts, and only mention blockers when they change the decision.
+  That usually happens only in close river spots with a narrow range.
+
+Standard strategy to follow:
+- As the big blind after calling preflop, do not lead (donk) into the preflop raiser on
+  the flop. Check to the raiser.
+- Flop bets are usually 33% pot, or 75% pot with a polarized range.
+- Turn bets are usually 75% pot, sometimes 150% pot (overbet).
+- River bets are usually 50% or 75% pot. Jam all-in when the jam is about 200% pot or less.
+- Raises are usually 2.5x to 5x Villain's bet, depending on the size of the bet.
+
+Numbers:
+- Do not do arithmetic. Use the pot, to-call, Villain's bet size, pot odds and SPR exactly
+  as given.
+- Pick one of the legal actions listed. For bet or raise, pick one amount from the
+  sizing options given, and give it as the total for this street. Otherwise sizing is null.
+- If Villain's cards are unknown, reason about Villain's range."""
+
+# Standard bet sizes per street, as a share of the pot.
+BET_SIZES = {
+    "flop": [0.33, 0.75],
+    "turn": [0.75, 1.50],
+    "river": [0.50, 0.75],
+}
+
+# Standard raise sizes, as a multiple of Villain's bet.
+RAISE_SIZES = [2.5, 3, 4, 5]
 
 LABEL_NAMES = {
     "fish": "Fish (loose-passive, weak)",
@@ -67,6 +107,29 @@ def board_through(hand: Hand, street: str) -> list[str]:
     return cards
 
 
+def position_line(hero_position: str) -> str:
+    """Heads-up, the button acts last after the flop. Stated so Claude never guesses it."""
+    if hero_position == "BTN":
+        return "Position: Hero is on the button, IN position after the flop (Hero acts last)."
+    return "Position: Hero is in the big blind, OUT of position after the flop (Hero acts first)."
+
+
+def facing_line(m: DecisionMath) -> Optional[str]:
+    """How big Villain's bet or raise is, so Claude never works out bet sizes itself."""
+    if m.to_call == 0:
+        return None
+
+    # Villain bet into Hero (Hero has nothing in yet this street).
+    if m.hero_committed == 0:
+        pot_before_bet = m.pot - m.villain_committed
+        share = m.villain_committed / pot_before_bet
+        return f"  Villain's bet: {money(m.villain_committed)} into {money(pot_before_bet)} ({share:.0%} pot)"
+
+    # Villain raised Hero's bet.
+    multiple = m.villain_committed / m.hero_committed
+    return f"  Villain's raise: to {money(m.villain_committed)}, {multiple:.1f}x Hero's {money(m.hero_committed)}"
+
+
 def legal_actions(m: DecisionMath) -> list[str]:
     """What Hero is allowed to do here."""
     if m.to_call == 0:
@@ -74,6 +137,39 @@ def legal_actions(m: DecisionMath) -> list[str]:
     # Facing a bet: can only raise if both players have chips left over after calling.
     can_raise = m.villain_stack > 0 and m.hero_stack > m.to_call
     return ["fold", "call", "raise"] if can_raise else ["fold", "call"]
+
+
+def round_amount(amount: float, big_blind: float) -> float:
+    """Whole dollars, or cents in games with blinds under $1."""
+    if big_blind >= 1:
+        return float(round(amount))
+    return round(amount, 2)
+
+
+def sizing_options(m: DecisionMath, big_blind: float) -> list[str]:
+    """The standard sizes for Hero's bet or raise, already worked out in dollars.
+
+    Every amount is the total for this street (the same rule as the hand's actions).
+    """
+    actions = legal_actions(m)
+    all_in_total = m.hero_stack + m.hero_committed
+    options = []
+
+    if "bet" in actions:
+        for share in BET_SIZES.get(m.street, []):
+            total = round_amount(share * m.pot, big_blind)
+            if total < all_in_total:
+                options.append(f"bet {money(total)} ({share:.0%} pot)")
+        options.append(f"all-in {money(all_in_total)} ({all_in_total / m.pot:.0%} pot)")
+
+    if "raise" in actions:
+        for multiple in RAISE_SIZES:
+            total = round_amount(multiple * m.villain_committed, big_blind)
+            if total < all_in_total:
+                options.append(f"raise to {money(total)} ({multiple:g}x)")
+        options.append(f"all-in {money(all_in_total)}")
+
+    return options
 
 
 def build_prompt(hand: Hand, index: int, m: DecisionMath, strength: Optional[HandStrength] = None) -> str:
@@ -88,6 +184,7 @@ def build_prompt(hand: Hand, index: int, m: DecisionMath, strength: Optional[Han
         f"Hero: {hero.position}, starting stack {money(hero.stack)}, cards {' '.join(hero.cards) if hero.cards else 'unknown'}.",
         f"Villain: {villain.position}, starting stack {money(villain.stack)}, "
         + (f"cards {' '.join(villain.cards)} (revealed after the hand; Hero could not see them, so decide on Villain's range, not these cards)." if villain.cards else "cards unknown."),
+        position_line(hero.position),
         f"Villain type: {LABEL_NAMES[villain.label] if villain.label else 'unknown'}.",
         f"Notes: {hand.notes.strip() or 'none'}",
         "",
@@ -115,6 +212,9 @@ def build_prompt(hand: Hand, index: int, m: DecisionMath, strength: Optional[Han
         f"  Pot: {money(m.pot)}",
         f"  To call: {money(m.to_call)}" if m.to_call else "  To call: nothing (Hero can check)",
     ]
+    facing = facing_line(m)
+    if facing:
+        lines.append(facing)
     if m.pot_odds is not None:
         lines.append(f"  Pot odds: Hero needs {m.pot_odds:.0%} equity to call")
     lines += [
@@ -125,7 +225,13 @@ def build_prompt(hand: Hand, index: int, m: DecisionMath, strength: Optional[Han
         f"Legal actions: {', '.join(legal_actions(m))}.",
     ]
 
+    # The bet or raise sizes to choose from (no arithmetic for Claude).
+    sizes = sizing_options(m, g.bb)
+    if sizes:
+        lines.append(f"Sizing options: {'; '.join(sizes)}.")
+
     # Hand-strength facts (none before the flop).
     if strength:
-        lines += ["", "Hand strength (already calculated, correct):", describe(strength)]
+        show_counts = m.street == "river"  # combos only matter in condensed river spots
+        lines += ["", "Hand strength (already calculated, correct):", describe(strength, show_counts)]
     return "\n".join(lines)

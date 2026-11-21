@@ -115,6 +115,10 @@ export function Replayer({ hand, initialIndex }: { hand: Hand; initialIndex: num
     };
   }, [hand, index, state.isDecisionNode, retry]);
 
+  // Hero's whole stack for this street: chips behind plus what is already in this street.
+  const heroSeat = state.seats.find((seat) => seat.position === hand.hero)!;
+  const heroAllInTotal = heroSeat.stack + heroSeat.committedThisStreet;
+
   return (
     <BigBlindProvider value={hand.game.bb}>
     <div className="flex gap-5">
@@ -133,7 +137,7 @@ export function Replayer({ hand, initialIndex }: { hand: Hand; initialIndex: num
         />
       </main>
       <aside className="w-2/5 relative rounded-2xl border border-line bg-panel">
-        <AnalysisPanel state={analysis} onRetry={() => setRetry((n) => n + 1)} />
+        <AnalysisPanel state={analysis} onRetry={() => setRetry((n) => n + 1)} allInTotal={heroAllInTotal} />
       </aside>
     </div>
     </BigBlindProvider>

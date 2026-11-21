@@ -2,7 +2,8 @@
 
 from models import Hand
 from poker_math import decision_math
-from prompt import build_prompt, legal_actions
+from hand_strength import hand_strength
+from prompt import board_through, build_prompt, legal_actions
 from tests.hands import COMBO, HAND
 
 aces = Hand.model_validate(HAND)
@@ -10,7 +11,11 @@ combo = Hand.model_validate(COMBO)
 
 
 def prompt_for(hand, i):
-    return build_prompt(hand, i, decision_math(hand, i))
+    """The full prompt, the same way main.py builds it."""
+    math = decision_math(hand, i)
+    hero = next(p for p in hand.players if p.position == hand.hero)
+    strength = hand_strength(hero.cards, board_through(hand, math.street))
+    return build_prompt(hand, i, math, strength)
 
 
 def test_river_shove_has_numbers_and_full_board():
@@ -55,3 +60,44 @@ def test_action_history_in_order():
 def test_legal_actions_hero_cannot_raise_when_short():
     m = decision_math(combo, 8)  # hero has exactly 119 behind, 119 to call
     assert legal_actions(m) == ["fold", "call"]
+
+
+def test_river_bet_sizes():
+    # River Top Boat is not in the test hands, so use Aces Cracked's turn (pot $170, checked to Hero).
+    p = prompt_for(aces, 6)
+    assert "bet $128 (75% pot)" in p
+    assert "bet $255 (150% pot)" in p
+    assert "all-in $615" in p
+
+
+def test_raise_sizes_are_multiples_of_villain_bet():
+    # Flop: Villain bets $35, Hero can raise.
+    p = prompt_for(aces, 4)
+    assert "raise to $88 (2.5x)" in p
+    assert "raise to $175 (5x)" in p
+
+
+def test_no_sizing_options_when_only_fold_or_call():
+    assert "Sizing options" not in prompt_for(aces, 9)
+
+
+def test_combo_counts_only_on_the_river():
+    assert "combo" not in prompt_for(aces, 4)  # flop
+    assert "combos)" in prompt_for(aces, 9)  # river
+
+
+def test_position_is_stated():
+    assert "Hero is on the button, IN position" in prompt_for(aces, 9)
+    assert "Hero is in the big blind, OUT of position" in prompt_for(combo, 8)
+
+
+def test_villain_bet_size_is_stated():
+    # River: Villain jams $400 into a $400 pot = 100% pot (not "half pot").
+    assert "Villain's bet: $400 into $400 (100% pot)" in prompt_for(aces, 9)
+    # Flop: $35 into $100.
+    assert "Villain's bet: $35 into $100 (35% pot)" in prompt_for(aces, 4)
+
+
+def test_villain_raise_is_stated():
+    # Combo Draw turn: Hero bets $45, Villain raises to $164.
+    assert "Villain's raise: to $164, 3.6x Hero's $45" in prompt_for(combo, 8)

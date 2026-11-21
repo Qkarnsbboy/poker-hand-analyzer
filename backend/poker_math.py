@@ -18,6 +18,8 @@ class DecisionMath:
     pot_odds: Optional[float]  # share of the final pot hero pays to call, e.g. 0.33; None if nothing to call
     hero_stack: float  # hero's chips behind, right now
     villain_stack: float  # villain's chips behind, right now
+    hero_committed: float  # what hero has put in on this street so far
+    villain_committed: float  # what villain has put in on this street so far (his bet, if he bet)
     effective_stack: float  # smaller stack at the start of this street
     spr: float  # effective stack / pot, at the start of this street
 
@@ -78,6 +80,8 @@ def decision_math(hand: Hand, index: int) -> DecisionMath:
         pot_odds=to_call / (pot + to_call) if to_call > 0 else None,
         hero_stack=stack[hand.hero],
         villain_stack=stack[villain],
+        hero_committed=committed[hand.hero],
+        villain_committed=committed[villain],
         effective_stack=effective,
         spr=effective / start_pot,
     )

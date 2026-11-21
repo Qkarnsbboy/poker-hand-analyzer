@@ -4,7 +4,9 @@ import { HandsList } from "./components/HandsList";
 import { Replayer } from "./components/Replayer";
 import { SettingsMenu } from "./components/SettingsMenu";
 import { defaultHand, DEFAULT_INDEX } from "./data/default-hand";
+import { analyzeWholeHand } from "./lib/analysis";
 import type { Hand } from "./lib/hand";
+import { loadHands } from "./lib/storage";
 import { loadUnit, saveUnit, UnitProvider, type Unit } from "./lib/money";
 import { applyTheme, loadTheme, type ThemeId } from "./lib/themes";
 
@@ -18,6 +20,16 @@ const PAGE_TITLES: Record<View, string> = { replayer: "Analyze", builder: "New H
 export default function App() {
   const [theme, setTheme] = useState<ThemeId>(loadTheme);
   useEffect(() => applyTheme(theme), [theme]);
+
+  // Pre-fill analysis for every saved hand in the background, so no hand
+  // makes you wait when you open it. Spots that are already saved cost nothing.
+  useEffect(() => {
+    const previewMode = /[?&](mock|long)\b/.test(window.location.search);
+    if (previewMode) return; // canned answers only, no Claude calls
+    for (const savedHand of loadHands()) {
+      analyzeWholeHand(savedHand);
+    }
+  }, []);
 
   const [unit, setUnit] = useState<Unit>(loadUnit);
   useEffect(() => saveUnit(unit), [unit]);

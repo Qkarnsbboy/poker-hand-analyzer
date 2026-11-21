@@ -72,6 +72,11 @@ def analyze(req: AnalyzeRequest):
     else:
         sizing = None
 
+    # Preflop there is no board to describe.
+    theory = answer.theory
+    if math.street == "preflop":
+        theory = theory.model_copy(update={"board_texture": ["N/A"]})
+
     # No notes means there is nothing to read from them.
     exploitative = answer.exploitative
     if not req.hand.notes.strip():
@@ -80,6 +85,6 @@ def analyze(req: AnalyzeRequest):
     return AnalyzeResponse(
         action_index=i,
         recommendation=Recommendation(action=answer.action, sizing=sizing, confidence=answer.confidence),
-        theory=answer.theory,
+        theory=theory,
         exploitative=exploitative,
     )
