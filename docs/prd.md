@@ -28,7 +28,7 @@ There is no poker analysis website that addresses combined theoretical / exploit
 - Multi-way analysis (heads-up only for now)
 - Tournament-related fields (too complicated)
 - Hand imports from sites
-- Login / account functionality
+- Login / account functionality (v1 only; v2 adds accounts for me and a few friends)
 
 ## 6. Done means
 

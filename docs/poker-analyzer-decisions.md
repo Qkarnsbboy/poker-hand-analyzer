@@ -1,6 +1,6 @@
 # Poker Hand Analyzer: Decisions and Design Notes
 
-Personal project for reviewing my own poker hands. Built for my own use, not for interviews or an audience.
+Personal project for reviewing my own poker hands. v1 was built for my own use. v2 makes it semi-production for me and a few friends, and it is a portfolio project for FDE interviews.
 
 ## Scope
 
@@ -15,7 +15,7 @@ Personal project for reviewing my own poker hands. Built for my own use, not for
 - Hand history file import
 - Multiway analysis
 - Tournaments, PLO, mixed games
-- Auth, database, mobile
+- Auth, database, mobile (v2 adds auth and a database; mobile is still out)
 
 ### Solver (parked)
 
@@ -66,15 +66,62 @@ poker_analyzer/
 | 7 | Slice 1: hardcoded hand, replay reducer, steppable table | done |
 | 8 | Slice 2: hand builder | done |
 | 9 | Slice 3: analysis panel (backend, poker math, Claude call, pre-run + saved analysis) | done |
-| 10 | Style pass | not started |
+| 10 | Slice 4: accounts + database (Supabase login, Postgres, spend caps) | in progress |
+| 11 | Slice 5: hosting (Render backend, Vercel frontend, CI, Sentry) | not started |
+| 12 | Style pass | not started |
 
 ### Build approach
 
 Vertical slices. Each one works end to end before the next starts. Slice 1 hardcodes the hand and skips styling and analysis.
 
+## Accounts and storage (v2)
+
+Moves saved data from browser storage to a database, so it survives a cleared browser and works on any device, and so friends can have their own accounts.
+
+### Stack
+
+- **Supabase** for Postgres and login (one vendor). Region East US (North Virginia), next to the Render backend.
+- **Login:** email magic link. Public sign-up is on. Email confirmation is on.
+- **Backend talks to the database directly** (psycopg, session pooler). The frontend never talks to the database. It only uses Supabase for login.
+
+### How a request is trusted
+
+```
+Browser --magic link--> Supabase Auth --> signed token (JWT)
+Browser --"Authorization: Bearer <token>"--> Backend
+Backend --checks the token signature (Supabase public keys, JWKS)--> user id
+Backend --queries filtered by user id--> Postgres
+```
+
+- **Row-level security is on for every table, with no public policies.** The publishable key can never read or write rows. Only the backend can, with its own database credentials.
+- The backend never trusts a user id from the request body. It takes it only from the verified token.
+
+### Tables
+
+| Table | Holds | Key |
+|---|---|---|
+| `profiles` | one row per user; whether sample hands were added | `user_id` |
+| `hands` | the hand JSON (same shape as `data-model.json`) + `favorite` flag | `(user_id, hand_id)` |
+| `analysis` | Claude's answer per hero decision + the hand fingerprint it was made for | `(user_id, hand_id, action_index)` |
+| `llm_calls` | every Claude call: tokens, cost, time | `id` |
+
+- The hand JSON stays exactly as in `data-model.json`. Ownership, favorite and timestamps are columns around it.
+- Deleting a hand deletes its analysis (`on delete cascade`).
+- **Migrations** are plain SQL files in `backend/migrations/`, applied in order by a small script that records which ones ran.
+
+### Spend caps
+
+- Every Claude call is recorded in `llm_calls` with its cost.
+- **Per-user cap** and **total cap** per calendar month, set by env vars. Over a cap, `/analyze` returns `429 usage_limit` and makes no Claude call.
+- Saved answers cost nothing, so a cap never blocks replaying old hands.
+
+### Moving existing data
+
+- On first login, if the browser still has hands in local storage, the app offers a one-time import into the account.
+
 ## Analysis timing
 
-- **Pre-run, not live.** When a hand is saved, every hero decision goes to Claude in parallel (~7s total, ~1c each). Answers are stored in browser storage, keyed by hand and a fingerprint of its contents, so replaying is instant and free. Editing the hand re-runs it.
+- **Pre-run, not live.** When a hand is saved, every hero decision goes to Claude in parallel (~7s total, ~1c each). Answers are stored per hand and a fingerprint of its contents (in browser storage in v1, in the `analysis` table in v2), so replaying is instant and free. Editing the hand re-runs it.
 - **Decision node markers dropped.** Not needed once analysis is instant.
 
 ## UI

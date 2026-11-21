@@ -6,9 +6,22 @@ The requests the frontend sends to the backend, and what comes back. Hand shape 
 
 | Method | Path | Purpose |
 |--------|------|---------|
-| POST | `/analyze` | Recommendation for one hero decision |
-| POST | `/analyze-hand` | Post-mortem and tips for the whole hand |
-| GET | `/health` | Backend is up |
+| POST | `/analyze` | Recommendation for one hero decision (saved per hand) |
+| GET | `/hands` | The user's saved hands, with favorite flags |
+| PUT | `/hands/{hand_id}` | Save a new hand, or replace an edited one |
+| DELETE | `/hands/{hand_id}` | Delete a hand and its saved analysis |
+| PUT | `/hands/{hand_id}/favorite` | Set or clear the favorite flag |
+| GET | `/hands/{hand_id}/analysis` | Saved answers for the hand's current version |
+| GET | `/usage` | This month's spend and the caps |
+| POST | `/analyze-hand` | Post-mortem and tips for the whole hand (not built) |
+| GET | `/health` | Backend is up (no login needed) |
+
+## Authentication (v2)
+
+- Every endpoint except `/health` needs `Authorization: Bearer <access token>`. The token comes from Supabase login in the browser.
+- The backend checks the token's signature with Supabase's public keys (JWKS), and takes the user id only from the token.
+- A missing, expired, or invalid token returns `401 unauthorized`.
+- Each user sees only their own hands and analysis.
 
 ## `POST /analyze`
 
@@ -66,6 +79,52 @@ Called once per hero decision, all in parallel, when a hand is saved from the bu
   - `adjustment`: the recommended play, given everything
 - `action_index` is echoed back so the frontend can drop stale responses
 
+### Saving and reuse (v2)
+
+- If the hand is saved and an answer exists for this action and this exact version of the hand (fingerprint), the saved answer is returned. No Claude call, no cost.
+- Otherwise Claude is called, and the answer is saved and the cost recorded.
+- Before a Claude call, the spend caps are checked. Over a cap: `429 usage_limit`.
+
+## `GET /hands`
+
+```json
+{
+  "hands": [
+    { "hand": { "...": "full hand object" }, "favorite": true }
+  ]
+}
+```
+
+- Newest first. On a user's first request, the sample hands are added once.
+
+## `PUT /hands/{hand_id}`
+
+- Body: the full hand object. `hand.id` must equal `{hand_id}`.
+- Creates the hand, or replaces it. If the content changed, its saved analysis no longer matches and is re-run when needed.
+- Response: `{ "hand": {...}, "favorite": false }`
+
+## `PUT /hands/{hand_id}/favorite`
+
+- Body: `{ "favorite": true }`. Response: `{ "favorite": true }`. `404 not_found` if the hand does not exist.
+
+## `DELETE /hands/{hand_id}`
+
+- Response `204`. Saved analysis for the hand is deleted too.
+
+## `GET /hands/{hand_id}/analysis`
+
+```json
+{ "results": { "9": { "...": "AnalyzeResponse" } } }
+```
+
+- Keys are action indexes. Only answers that match the hand's current version.
+
+## `GET /usage`
+
+```json
+{ "month_spend_usd": 0.42, "user_cap_usd": 2.0, "total_cap_usd": 20.0 }
+```
+
 ## `POST /analyze-hand`
 
 Called when the replayer reaches the end of the hand.
@@ -111,13 +170,18 @@ All errors use one shape:
 
 | Status | `code` | When |
 |--------|--------|------|
+| 401 | `unauthorized` | Missing, expired, or invalid login token |
+| 404 | `not_found` | The hand does not exist for this user |
 | 422 | `invalid_request` | Malformed hand, or `action_index` is not a hero decision |
+| 429 | `usage_limit` | The user or the app is over its monthly Claude spend cap |
 | 502 | `llm_error` | LLM call failed or returned unparseable output |
 | 504 | `llm_timeout` | LLM call exceeded 30 seconds |
 
 ## Frontend behavior
 
-- **Pre-run:** every hero decision is analyzed up front; answers are stored per hand and thrown away when the hand is edited
+- **Login:** the app shows a login screen until Supabase gives a session. A `401` sends the user back to it.
+- **Pre-run:** every hero decision is analyzed up front; answers are saved per hand (in the database in v2) and re-run when the hand is edited
+- **Over the cap:** show "Monthly analysis limit reached" in the panel; replaying saved answers still works
 - **Loading:** show a loading state only if you reach a decision before its answer has arrived
 - **Failure (any error):** show a warning icon and "Analysis unavailable", with a retry button
 - **Non-decision nodes:** right panel is empty
