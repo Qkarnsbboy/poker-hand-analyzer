@@ -78,10 +78,25 @@ class Recommendation(BaseModel):
     confidence: Literal["high", "medium", "low"]
 
 
+# Theory, split into four buckets. Each bucket is a list of short bullets.
+class Theory(BaseModel):
+    my_range: list[str]  # Hero's range here, where Hero's hand fits, blockers
+    villain_range: list[str]  # the hands Villain can have, given the action
+    board_texture: list[str]  # how the board changes things
+    bet_sizing: list[str]  # pot odds, SPR, sizing
+
+
+# Exploitative, split into four buckets. Each bucket is a list of short bullets.
+class Exploitative(BaseModel):
+    theory_baseline: list[str]  # the default play, simply
+    player_type: list[str]  # how this type (or the typical player) deviates from theory
+    reads: list[str]  # what the notes tell us; empty when there are no notes
+    adjustment: list[str]  # the recommended play, given everything
+
+
 # What the backend sends back.
 class AnalyzeResponse(BaseModel):
     action_index: int  # echoed back so the frontend can ignore old answers
     recommendation: Recommendation
-    theory: list[str] = Field(min_length=2, max_length=4)
-    exploitative: list[str] = Field(min_length=2, max_length=4)
-    what_would_change_this: str
+    theory: Theory
+    exploitative: Exploitative

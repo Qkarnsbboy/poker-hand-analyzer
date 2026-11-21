@@ -81,9 +81,9 @@ describe("streetStartIndex", () => {
 describe("closing steps", () => {
   it("adds a pause after each street-closing action", () => {
     const steps = replaySteps(defaultHand);
-    // 11 action positions + 3 street changes (flop, turn, river)
-    expect(steps).toHaveLength(14);
-    expect(steps.filter((s) => s.closing).map((s) => s.index)).toEqual([3, 5, 8]);
+    // 11 action positions + 3 street changes (flop, turn, river) + 1 before showdown
+    expect(steps).toHaveLength(15);
+    expect(steps.filter((s) => s.closing).map((s) => s.index)).toEqual([3, 5, 8, 10]);
   });
 
   it("shows the closing call on the old street, before the next cards", () => {
@@ -95,5 +95,17 @@ describe("closing steps", () => {
     expect(t.toAct).toBeNull();
     expect(t.isDecisionNode).toBe(false);
     expect(t.pot).toBe(100);
+  });
+
+  it("pauses on the river call before showdown", () => {
+    // Index 10 = end of hand. Closing view: river, both $400 bets still out, cards hidden.
+    const t = replayAt(defaultHand, 10, true);
+    expect(t.isEnd).toBe(false);
+    expect(t.street).toBe("river");
+    expect(t.pot).toBe(1200);
+    expect(t.seats.find((s) => s.position === "BTN")!.lastAction?.action).toBe("call");
+    expect(t.seats.find((s) => s.position === "BTN")!.committedThisStreet).toBe(400);
+    // Then the real end: showdown.
+    expect(replayAt(defaultHand, 10).isEnd).toBe(true);
   });
 });

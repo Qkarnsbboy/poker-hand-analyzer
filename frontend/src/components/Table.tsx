@@ -113,6 +113,8 @@ export function Table({ hand, state }: { hand: Hand; state: TableState }) {
         <div className="text-white text-center leading-tight">
           <div className="text-sm text-white/70">Pot</div>
           <div className="text-xl font-bold whitespace-nowrap">{format(centerPot)}</div>
+          {/* With bets still out in front, also show the total including them. */}
+          {state.pot !== centerPot && <div className="text-xs font-semibold text-white/70 whitespace-nowrap">Total {format(state.pot)}</div>}
         </div>
       </div>
 

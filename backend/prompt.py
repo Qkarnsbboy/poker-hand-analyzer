@@ -1,24 +1,43 @@
-"""Writes the question we send to Claude. Words only: all numbers come from poker_math."""
+"""Writes the question we send to Claude. Words only: the numbers come from poker_math,
+and the hand-strength facts come from hand_strength."""
+
+from typing import Optional
 
 from models import Hand
+from hand_strength import HandStrength, describe
 from poker_math import DecisionMath
 
 # The fixed instructions. Same for every request.
 SYSTEM_PROMPT = """You are a poker coach reviewing a heads-up No-Limit Hold'em cash game hand.
 The player you are coaching is "Hero". The opponent is "Villain".
 
-Recommend Hero's action at the spot described, then explain it from two angles:
-- theory: the balanced, GTO-style view (ranges, board texture, blockers, pot odds, SPR)
-- exploitative: how Villain's player type, notes and tendencies change the answer
+Recommend Hero's action at the spot described. Then explain it in these buckets.
+Each bucket is a list of 1 to 3 short bullets. One idea per bullet, one sentence each.
+
+theory (the balanced, GTO-style view):
+- my_range: Hero's range in this spot, where Hero's actual hand fits in it, and any blockers Hero holds.
+- villain_range: the hands Villain can have, given every action so far.
+- board_texture: how the board (draws, pairs, scare cards) affects both ranges.
+- bet_sizing: what the pot odds, SPR and bet sizes mean here.
+
+exploitative (how to adjust against this Villain):
+- theory_baseline: the default play from theory, in one simple bullet.
+- player_type: how this player type deviates from theory here. If the type is unknown,
+  use how a typical player at these stakes plays this spot.
+- reads: what the notes suggest (timing, table talk, background, past showdowns).
+  Use an empty list if there are no notes. Only use what happened up to this decision.
+- adjustment: given all of this, the recommended play and why.
 
 Rules:
+- Hand strength is given in the spot ("Hands that beat Hero"). It is calculated and correct.
+  Only those hands beat Hero; every other hand loses. Do not say any other hand beats Hero,
+  and do not call a hand from that list a bluff or a weaker hand. Your job is to judge
+  which of those hands are likely in Villain's range, given the action.
 - Do not do arithmetic. Use the pot, to-call, pot odds and SPR exactly as given.
 - Only use cards shown so far. Do not guess future streets.
 - If Villain's cards are unknown, reason about Villain's range.
 - Pick one of the legal actions listed. For bet or raise, give sizing as the total
-  amount in dollars for this street (not the increment). Otherwise sizing is null.
-- Write 2 to 4 short bullets for theory and 2 to 4 for exploitative. One sentence each.
-- what_would_change_this: one sentence on what read or card would flip the decision."""
+  amount in dollars for this street (not the increment). Otherwise sizing is null."""
 
 LABEL_NAMES = {
     "fish": "Fish (loose-passive, weak)",
@@ -57,7 +76,7 @@ def legal_actions(m: DecisionMath) -> list[str]:
     return ["fold", "call", "raise"] if can_raise else ["fold", "call"]
 
 
-def build_prompt(hand: Hand, index: int, m: DecisionMath) -> str:
+def build_prompt(hand: Hand, index: int, m: DecisionMath, strength: Optional[HandStrength] = None) -> str:
     """The per-spot message: the hand so far, the numbers, and what we want back."""
     hero = next(p for p in hand.players if p.position == hand.hero)
     villain = next(p for p in hand.players if p.position != hand.hero)
@@ -105,4 +124,8 @@ def build_prompt(hand: Hand, index: int, m: DecisionMath) -> str:
         "",
         f"Legal actions: {', '.join(legal_actions(m))}.",
     ]
+
+    # Hand-strength facts (none before the flop).
+    if strength:
+        lines += ["", "Hand strength (already calculated, correct):", describe(strength)]
     return "\n".join(lines)

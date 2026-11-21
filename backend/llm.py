@@ -10,6 +10,8 @@ import anthropic
 from dotenv import load_dotenv
 from pydantic import BaseModel, ValidationError
 
+from models import Exploitative, Theory
+
 # Read ANTHROPIC_API_KEY and ANTHROPIC_MODEL from backend/.env
 load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
 
@@ -72,9 +74,8 @@ class LLMAnalysis(BaseModel):
     action: Literal["fold", "check", "call", "bet", "raise"]
     sizing: Optional[float]
     confidence: Literal["high", "medium", "low"]
-    theory: list[str]
-    exploitative: list[str]
-    what_would_change_this: str
+    theory: Theory
+    exploitative: Exploitative
 
 
 _client: Optional[anthropic.Anthropic] = None

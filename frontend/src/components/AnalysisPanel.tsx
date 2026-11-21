@@ -27,9 +27,22 @@ export function ActionBox({ rec, colorClass }: { rec: AnalyzeResponse["recommend
   );
 }
 
-// Each section opens and closes on its own.
-function Accordion({ title, items }: { title: string; items: string[] }) {
+// One labeled bucket: a small heading, then its bullets.
+interface Bucket {
+  label: string;
+  bullets: string[]; // empty = bucket is left out (for example, no notes to read)
+}
+
+// A section (Theory or Exploitative) that opens and closes on its own.
+function Accordion({ title, buckets }: { title: string; buckets: Bucket[] }) {
   const [open, setOpen] = useState(true);
+
+  // Leave out buckets with nothing to say.
+  const shown: Bucket[] = [];
+  for (const bucket of buckets) {
+    if (bucket.bullets.length > 0) shown.push(bucket);
+  }
+
   return (
     <div className="shrink-0 rounded-2xl border border-line-strong bg-raised overflow-hidden">
       <button
@@ -43,14 +56,21 @@ function Accordion({ title, items }: { title: string; items: string[] }) {
         </svg>
       </button>
       {open && (
-        <ul className="border-t border-line-strong px-4 py-2.5 space-y-1.5 text-sm leading-snug">
-          {items.map((t) => (
-            <li key={t} className="flex gap-2">
-              <span className="text-accent">•</span>
-              <span className="min-w-0 [overflow-wrap:anywhere]">{t}</span>
-            </li>
+        <div className="border-t border-line-strong px-4 py-2.5 space-y-2.5 text-sm leading-snug">
+          {shown.map((bucket) => (
+            <div key={bucket.label}>
+              <div className="text-xs font-bold uppercase tracking-wide text-accent">{bucket.label}</div>
+              <ul className="mt-1 space-y-1">
+                {bucket.bullets.map((bullet) => (
+                  <li key={bullet} className="flex gap-2">
+                    <span className="text-ink-faint">•</span>
+                    <span className="min-w-0 [overflow-wrap:anywhere]">{bullet}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
     </div>
   );
@@ -83,13 +103,31 @@ export function AnalysisPanel({ state, onRetry }: { state: AnalysisState; onRetr
       </div>
     );
   }
-  // 4. Got an answer: recommendation box, then theory and exploitative lists.
+  // 4. Got an answer: recommendation box, then the theory and exploitative buckets.
   const analysis = state.data;
+  const theory = analysis.theory;
+  const exploitative = analysis.exploitative;
   return (
     <div className="absolute inset-4 flex flex-col gap-3 overflow-y-auto no-scrollbar">
       <ActionBox rec={analysis.recommendation} />
-      <Accordion title="Theory" items={analysis.theory} />
-      <Accordion title="Exploitative" items={analysis.exploitative} />
+      <Accordion
+        title="Theory"
+        buckets={[
+          { label: "My range", bullets: theory.my_range },
+          { label: "Villain's range", bullets: theory.villain_range },
+          { label: "Board texture", bullets: theory.board_texture },
+          { label: "Bet sizing", bullets: theory.bet_sizing },
+        ]}
+      />
+      <Accordion
+        title="Exploitative"
+        buckets={[
+          { label: "Theory baseline", bullets: exploitative.theory_baseline },
+          { label: "Player type", bullets: exploitative.player_type },
+          { label: "Reads / notes", bullets: exploitative.reads },
+          { label: "Adjustment", bullets: exploitative.adjustment },
+        ]}
+      />
     </div>
   );
 }

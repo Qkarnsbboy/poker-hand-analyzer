@@ -1,4 +1,4 @@
-"""FastAPI app. /analyze: validate -> poker math -> prompt -> Claude -> response."""
+"""FastAPI app. /analyze: validate -> poker math -> hand strength -> prompt -> Claude -> response."""
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
@@ -7,7 +7,8 @@ from fastapi.responses import JSONResponse
 import llm
 from models import AnalyzeRequest, AnalyzeResponse, Recommendation
 from poker_math import decision_math
-from prompt import SYSTEM_PROMPT, build_prompt
+from hand_strength import hand_strength
+from prompt import SYSTEM_PROMPT, board_through, build_prompt
 
 # The app object. uvicorn runs this ("main:app").
 app = FastAPI(title="Poker Hand Analyzer")
@@ -50,9 +51,13 @@ def analyze(req: AnalyzeRequest):
 
     # 1. Work out the numbers.
     math = decision_math(req.hand, i)
-    # 2. Write the question.
-    question = build_prompt(req.hand, i, math)
-    # 3. Ask Claude. Errors map to the contract's status codes.
+    # 2. Work out what Hero has and which hands beat it (on the board shown so far).
+    hero = next(p for p in req.hand.players if p.position == req.hand.hero)
+    board = board_through(req.hand, math.street)
+    strength = hand_strength(hero.cards, board) if hero.cards else None
+    # 3. Write the question.
+    question = build_prompt(req.hand, i, math, strength)
+    # 4. Ask Claude. Errors map to the contract's status codes.
     try:
         answer = llm.ask_claude(SYSTEM_PROMPT, question)
     except llm.LLMTimeout as e:
@@ -60,14 +65,21 @@ def analyze(req: AnalyzeRequest):
     except llm.LLMError as e:
         return error(502, "llm_error", str(e))
 
-    # 4. Tidy up and send back. Sizing only makes sense for bet/raise.
-    sizing = answer.sizing if answer.action in ("bet", "raise") else None
-    if len(answer.theory) < 2 or len(answer.exploitative) < 2:
-        return error(502, "llm_error", "Claude's answer was missing reasoning.")
+    # 5. Tidy up and send back.
+    # Sizing only makes sense for bet or raise.
+    if answer.action in ("bet", "raise"):
+        sizing = answer.sizing
+    else:
+        sizing = None
+
+    # No notes means there is nothing to read from them.
+    exploitative = answer.exploitative
+    if not req.hand.notes.strip():
+        exploitative = exploitative.model_copy(update={"reads": []})
+
     return AnalyzeResponse(
         action_index=i,
         recommendation=Recommendation(action=answer.action, sizing=sizing, confidence=answer.confidence),
-        theory=answer.theory[:4],
-        exploitative=answer.exploitative[:4],
-        what_would_change_this=answer.what_would_change_this,
+        theory=answer.theory,
+        exploitative=exploitative,
     )

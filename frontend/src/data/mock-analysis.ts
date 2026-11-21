@@ -4,18 +4,18 @@ import type { AnalyzeResponse, RecommendedAction } from "../lib/analysis";
 export const mockAnalysis: AnalyzeResponse = {
   action_index: 9,
   recommendation: { action: "call", sizing: null, confidence: "medium" },
-  theory: [
-    "Heads-up, villain's river shove range is wide.",
-    "AA is a strong bluff catcher here and blocks A5, the only straight.",
-    "Plenty of missed draws to bluff with: QsXs flush draws and gutshots like QT.",
-    "You need 33% equity to call $400 into $800.",
-  ],
-  exploitative: [
-    "Villain is loose and plays lots of draws, so missed draws are a big part of this range.",
-    "Thin value from AK or KQ is possible, but AA beats it.",
-    "Villain seems to overbluff, which makes calling better than the theory baseline.",
-  ],
-  what_would_change_this: "Against a tight, passive player, this shove is mostly A5 and two pair or better, and folding becomes reasonable.",
+  theory: {
+    my_range: ["AA is near the top of Hero's range here.", "Hero's aces block A5, the wheel."],
+    villain_range: ["Value: sets and A5.", "Bluffs: missed spade draws and QT."],
+    board_texture: ["The flush missed.", "The 2 completes the wheel, so most draws busted."],
+    bet_sizing: ["Hero needs 33% equity to call $400 into $800.", "SPR is 1, so this is the last decision."],
+  },
+  exploitative: {
+    theory_baseline: ["AA is a clear call against a balanced river shove."],
+    player_type: ["LAGs play many draws and bluff the missed ones."],
+    reads: ["The notes say Villain overbluffs."],
+    adjustment: ["Call. Folding AA here loses money against this player."],
+  },
 };
 
 const filler =
@@ -26,8 +26,12 @@ export function mockFromUrl(): AnalyzeResponse {
   const params = new URLSearchParams(window.location.search);
   const action = params.get("mock") as RecommendedAction | null;
   if (params.has("long")) {
-    const pad = (xs: string[]) => [...xs, ...Array.from({ length: 4 }, (_, i) => filler + " (" + (i + 1) + ")")];
-    return { ...mockAnalysis, theory: pad(mockAnalysis.theory), exploitative: pad(mockAnalysis.exploitative) };
+    // Add a long bullet to every bucket, to test how the panel handles overflow.
+    const theory = { ...mockAnalysis.theory };
+    const exploitative = { ...mockAnalysis.exploitative };
+    for (const key of Object.keys(theory) as (keyof typeof theory)[]) theory[key] = [...theory[key], filler];
+    for (const key of Object.keys(exploitative) as (keyof typeof exploitative)[]) exploitative[key] = [...exploitative[key], filler];
+    return { ...mockAnalysis, theory, exploitative };
   }
   if (!action) return mockAnalysis;
   const sizing = action === "bet" || action === "raise" ? 900 : null;

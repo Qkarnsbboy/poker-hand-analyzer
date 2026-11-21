@@ -11,9 +11,24 @@ export interface AnalyzeResponse {
     sizing: number | null;
     confidence: "high" | "medium" | "low";
   };
-  theory: string[];
-  exploitative: string[];
-  what_would_change_this: string;
+  theory: Theory;
+  exploitative: Exploitative;
+}
+
+// Theory, in four buckets. Each bucket is a list of short bullets.
+export interface Theory {
+  my_range: string[]; // Hero's range, where Hero's hand fits, blockers
+  villain_range: string[]; // Villain's possible hands, given the action
+  board_texture: string[]; // how the board changes things
+  bet_sizing: string[]; // pot odds, SPR, sizing
+}
+
+// Exploitative, in four buckets. Each bucket is a list of short bullets.
+export interface Exploitative {
+  theory_baseline: string[]; // the default play, simply
+  player_type: string[]; // how this type deviates from theory
+  reads: string[]; // what the notes suggest; empty when there are no notes
+  adjustment: string[]; // the recommended play, given everything
 }
 
 // Ask the backend to analyze one hero decision.

@@ -49,7 +49,7 @@ def test_villain_type_and_unknown_cards():
 def test_action_history_in_order():
     p = prompt_for(aces, 9)
     assert p.index("Hero raises $15") < p.index("Villain raises $50") < p.index("Villain bets $400")
-    assert p.strip().endswith("Legal actions: fold, call.")
+    assert "Legal actions: fold, call." in p
 
 
 def test_legal_actions_hero_cannot_raise_when_short():

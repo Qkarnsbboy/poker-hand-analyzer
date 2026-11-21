@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 
 import llm
 from main import app
+from models import Exploitative, Theory
 
 # Run with: .venv/bin/python -m pytest -q
 
@@ -21,9 +22,18 @@ class FakeClaude:
             action="call",
             sizing=None,
             confidence="medium",
-            theory=["Theory point one.", "Theory point two."],
-            exploitative=["Exploit point one.", "Exploit point two."],
-            what_would_change_this="A tighter villain.",
+            theory=Theory(
+                my_range=["Hero's range here."],
+                villain_range=["Villain's range here."],
+                board_texture=["The board."],
+                bet_sizing=["The price."],
+            ),
+            exploitative=Exploitative(
+                theory_baseline=["Call."],
+                player_type=["LAGs bluff more."],
+                reads=["Villain seems to overbluff."],
+                adjustment=["Call more."],
+            ),
         )
         self.error = None
         self.prompt = None
@@ -52,7 +62,9 @@ def test_analyze_hero_decision():
     body = r.json()
     assert body["action_index"] == 9
     assert body["recommendation"]["action"] in {"fold", "check", "call", "bet", "raise"}
-    assert 2 <= len(body["theory"]) <= 4
+    assert body["theory"]["villain_range"] == ["Villain's range here."]
+    assert body["exploitative"]["adjustment"] == ["Call more."]
+    assert "what_would_change_this" not in body
 
 
 def test_prompt_gets_the_math(fake):
@@ -73,10 +85,26 @@ def test_sizing_dropped_for_call(fake):
     assert r.json()["recommendation"]["sizing"] is None
 
 
-def test_too_many_bullets_trimmed_to_four(fake):
-    fake.answer = fake.answer.model_copy(update={"theory": ["x"] * 6})
+def test_reads_dropped_when_hand_has_no_notes():
+    no_notes = {**HAND, "notes": ""}
+    r = client.post("/analyze", json={"hand": no_notes, "action_index": 9})
+    assert r.json()["exploitative"]["reads"] == []
+
+
+def test_reads_kept_when_hand_has_notes():
     r = client.post("/analyze", json={"hand": HAND, "action_index": 9})
-    assert len(r.json()["theory"]) == 4
+    assert r.json()["exploitative"]["reads"] == ["Villain seems to overbluff."]
+
+
+def test_prompt_gets_hand_strength(fake):
+    client.post("/analyze", json={"hand": HAND, "action_index": 9})
+    assert "Hand strength (already calculated, correct):" in fake.prompt
+    assert "Straight: 65, A5" in fake.prompt
+
+
+def test_no_hand_strength_preflop(fake):
+    client.post("/analyze", json={"hand": HAND, "action_index": 0})
+    assert "Hand strength" not in fake.prompt
 
 
 def test_llm_error_is_502(fake):

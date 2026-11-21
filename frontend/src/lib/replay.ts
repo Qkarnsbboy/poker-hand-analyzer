@@ -47,7 +47,8 @@ function boardThrough(hand: Hand, street: Street): Card[] {
 export function replayAt(hand: Hand, index: number, closing = false): TableState {
   const n = hand.actions.length;
   const i = Math.max(0, Math.min(index, n));
-  const isEnd = i === n;
+  // A closing step at the very end is the pause before showdown, not the showdown itself.
+  const isEnd = i === n && !closing;
 
   const seats: SeatState[] = hand.players.map((p) => ({
     position: p.position,
@@ -121,8 +122,9 @@ export function replayAt(hand: Hand, index: number, closing = false): TableState
 }
 
 // One replayer step = one view of the table.
-// Normally that's "before actions[index]". Between streets we add an extra
-// closing step, so you see the call/check that ended the street before the next cards come.
+// Normally that's "before actions[index]". Between streets, and before showdown, we add
+// an extra closing step, so you see the final call/check (and the pot) before the next
+// cards come or the hands are shown.
 export interface Step {
   index: number;
   closing: boolean;
@@ -133,7 +135,8 @@ export function replaySteps(hand: Hand): Step[] {
   const steps: Step[] = [];
   for (let i = 0; i <= a.length; i++) {
     const newStreet = i > 0 && i < a.length && a[i].street !== a[i - 1].street;
-    if (newStreet) steps.push({ index: i, closing: true });
+    const beforeShowdown = i > 0 && i === a.length;
+    if (newStreet || beforeShowdown) steps.push({ index: i, closing: true });
     steps.push({ index: i, closing: false });
   }
   return steps;

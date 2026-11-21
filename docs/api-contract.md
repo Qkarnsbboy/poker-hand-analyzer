@@ -36,24 +36,34 @@ Called once per hero decision, all in parallel, when a hand is saved from the bu
     "sizing": null,
     "confidence": "medium"
   },
-  "theory": [
-    "You're getting 3:1, so you need 25% equity to call.",
-    "Villain's raise range here is mostly two pair and sets.",
-    "Your overpair is behind most of it but has outs."
-  ],
-  "exploitative": [
-    "Villain is passive, so his raises are weighted toward value.",
-    "Passive players rarely bluff-raise the flop."
-  ],
-  "what_would_change_this": "If villain were aggressive, his raise range widens and this becomes a clear call."
+  "theory": {
+    "my_range": ["Hero's overpair is in the middle of Hero's range here."],
+    "villain_range": ["Villain's raise range is mostly two pair and sets."],
+    "board_texture": ["The two hearts give Villain flush draws to semi-bluff with."],
+    "bet_sizing": ["Hero gets 3:1, so Hero needs 25% equity to call."]
+  },
+  "exploitative": {
+    "theory_baseline": ["Calling is close to break-even in theory."],
+    "player_type": ["Passive players rarely bluff-raise the flop."],
+    "reads": ["The notes say Villain was passive preflop."],
+    "adjustment": ["Fold more often: Villain's raises are weighted toward value."]
+  }
 }
 ```
 
 - `recommendation.action`: fold, check, call, bet, raise
 - `sizing`: total amount (same rule as the data model), `null` unless the action is bet or raise
 - `confidence`: high, medium, low
-- `theory`: 2 to 4 strings, the balanced/GTO view (ranges, pot odds, blockers)
-- `exploitative`: 2 to 4 strings, adjustments based on villain tendencies and `hand.notes`
+- `theory`: four buckets, each a list of 1 to 3 short bullets
+  - `my_range`: Hero's range here, where Hero's hand fits, blockers
+  - `villain_range`: Villain's possible hands, given the action
+  - `board_texture`: how the board affects both ranges
+  - `bet_sizing`: pot odds, SPR, sizing
+- `exploitative`: four buckets, each a list of 1 to 3 short bullets
+  - `theory_baseline`: the default play, simply
+  - `player_type`: how this type (or the typical player, if unknown) deviates from theory
+  - `reads`: what the notes suggest; empty list when there are no notes
+  - `adjustment`: the recommended play, given everything
 - `action_index` is echoed back so the frontend can drop stale responses
 
 ## `POST /analyze-hand`
@@ -116,5 +126,6 @@ All errors use one shape:
 ## Backend notes
 
 - The backend computes pot, to_call, pot odds, and SPR from the action list and puts them in the LLM prompt. The LLM never does arithmetic.
+- The backend also computes hand strength (from the flop on): Hero's hand category and every Villain hand that beats or ties it, grouped (e.g. "Full House: KK"). The LLM judges which of those are in Villain's range; it does not rank hands itself.
 - These numbers are not returned to the frontend in v1.
 - Villain hole cards are optional (`null` when unknown). The prompt should say when they're unknown so the LLM reasons about a range.
