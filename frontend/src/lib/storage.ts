@@ -15,10 +15,19 @@ import type { Hand } from "./hand";
 export interface SavedHand {
   hand: Hand;
   favorite: boolean;
+  created_at: string | null; // when it was first saved (ISO date); null if unknown
 }
 
 export function newHandId(): string {
   return "hand-" + Date.now();
+}
+
+// Browser hands have no saved date, but new ids hold the time they were made
+// ("hand-1763750000000"). Sample hands ("hand-001") have no date.
+function dateFromId(id: string): string | null {
+  const millis = Number(id.replace("hand-", ""));
+  if (!Number.isFinite(millis) || millis < 1_000_000_000_000) return null;
+  return new Date(millis).toISOString();
 }
 
 // ----- What the app calls -----
@@ -31,7 +40,7 @@ export async function listHands(): Promise<SavedHand[]> {
   const favorites = browserFavorites();
   const result: SavedHand[] = [];
   for (const hand of browserHands()) {
-    result.push({ hand, favorite: favorites.has(hand.id) });
+    result.push({ hand, favorite: favorites.has(hand.id), created_at: dateFromId(hand.id) });
   }
   return result;
 }

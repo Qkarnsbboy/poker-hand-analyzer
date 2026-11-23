@@ -129,6 +129,7 @@ def test_save_list_and_delete_a_hand():
     assert client.put(f"/hands/{HAND['id']}", json=HAND).status_code == 200
     hands = client.get("/hands").json()["hands"]
     assert [h["hand"]["id"] for h in hands] == [HAND["id"]]
+    assert hands[0]["created_at"].startswith("2026-")
     assert client.delete(f"/hands/{HAND['id']}").status_code == 204
     assert client.get("/hands").json()["hands"] == []
 

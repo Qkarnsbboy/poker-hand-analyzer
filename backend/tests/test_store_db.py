@@ -66,6 +66,7 @@ def test_store_round_trip(db):
     saved = store.get_hand(user, hand.id)
     assert saved["favorite"] is True
     assert saved["hand"]["notes"] == HAND["notes"]
+    assert "created_at" in store.list_hands(user)[0]
 
     # Save an answer, load it for the same version, not for another version.
     fp = store.fingerprint(hand)

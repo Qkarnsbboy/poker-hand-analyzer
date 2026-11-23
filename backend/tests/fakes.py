@@ -41,8 +41,12 @@ class FakeStore:
         return copy.deepcopy(self.hands.get((user_id, hand_id)))
 
     def save_hand(self, user_id, hand: Hand):
-        favorite = self.hands.get((user_id, hand.id), {}).get("favorite", False)
-        self.hands[(user_id, hand.id)] = {"hand": hand.model_dump(mode="json", exclude_unset=True), "favorite": favorite}
+        existing = self.hands.get((user_id, hand.id), {})
+        self.hands[(user_id, hand.id)] = {
+            "hand": hand.model_dump(mode="json", exclude_unset=True),
+            "favorite": existing.get("favorite", False),
+            "created_at": existing.get("created_at", "2026-11-21T12:00:00+00:00"),
+        }
         return copy.deepcopy(self.hands[(user_id, hand.id)])
 
     def delete_hand(self, user_id, hand_id):

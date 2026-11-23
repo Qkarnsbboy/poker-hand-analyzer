@@ -77,15 +77,15 @@ def ensure_profile(user_id: str) -> None:
 
 
 def list_hands(user_id: str) -> list[dict]:
-    """The user's hands, newest first: [{"hand": {...}, "favorite": bool}, ...]"""
+    """The user's hands, newest first: [{"hand": {...}, "favorite": bool, "created_at": "2026-11-21T..."}]"""
     with pool().connection() as conn:
         rows = conn.execute(
-            "select hand, favorite from hands where user_id = %s order by created_at desc, hand_id",
+            "select hand, favorite, created_at from hands where user_id = %s order by created_at desc, hand_id",
             (user_id,),
         ).fetchall()
     result = []
-    for hand, favorite in rows:
-        result.append({"hand": hand, "favorite": favorite})
+    for hand, favorite, created_at in rows:
+        result.append({"hand": hand, "favorite": favorite, "created_at": created_at.isoformat()})
     return result
 
 
@@ -109,11 +109,11 @@ def save_hand(user_id: str, hand: Hand) -> dict:
             insert into hands (user_id, hand_id, hand) values (%s, %s, %s)
             on conflict (user_id, hand_id)
                 do update set hand = excluded.hand, updated_at = now()
-            returning hand, favorite
+            returning hand, favorite, created_at
             """,
             (user_id, hand.id, Jsonb(hand_json(hand))),
         ).fetchone()
-    return {"hand": row[0], "favorite": row[1]}
+    return {"hand": row[0], "favorite": row[1], "created_at": row[2].isoformat()}
 
 
 def delete_hand(user_id: str, hand_id: str) -> bool:

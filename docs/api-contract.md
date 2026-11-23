@@ -90,7 +90,7 @@ Called once per hero decision, all in parallel, when a hand is saved from the bu
 ```json
 {
   "hands": [
-    { "hand": { "...": "full hand object" }, "favorite": true }
+    { "hand": { "...": "full hand object" }, "favorite": true, "created_at": "2026-11-21T19:08:28+00:00" }
   ]
 }
 ```
@@ -101,7 +101,7 @@ Called once per hero decision, all in parallel, when a hand is saved from the bu
 
 - Body: the full hand object. `hand.id` must equal `{hand_id}`.
 - Creates the hand, or replaces it. If the content changed, its saved analysis no longer matches and is re-run when needed.
-- Response: `{ "hand": {...}, "favorite": false }`
+- Response: `{ "hand": {...}, "favorite": false, "created_at": "..." }`
 
 ## `PUT /hands/{hand_id}/favorite`
 
