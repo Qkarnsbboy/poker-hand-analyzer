@@ -67,7 +67,7 @@ poker_analyzer/
 | 8 | Slice 2: hand builder | done |
 | 9 | Slice 3: analysis panel (backend, poker math, Claude call, pre-run + saved analysis) | done |
 | 10 | Slice 4: accounts + database (Google + email login, guest mode, Postgres, spend caps) | done |
-| 11 | Slice 5: hosting (Render backend, Vercel frontend, CI, Sentry) | not started |
+| 11 | Slice 5: hosting (Render backend, Render static frontend, CI, Sentry) | in progress: backend and frontend live on Render at pokerhandanalyzer.app (Cloudflare domain, DNS only; frontend moved off Vercel: account needed re-verify), CI workflow written; Sentry next |
 | 12 | Style pass | not started |
 
 ### Build approach

@@ -33,6 +33,8 @@ npm run screenshot  # Playwright screenshots of the running dev server into .scr
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt   # one-time
 .venv/bin/uvicorn main:app --port 8000 --reload   # API on :8000; Vite proxies /api/* to it
 .venv/bin/python -m pytest -q                      # API tests
+.venv/bin/python migrate.py                        # apply new SQL files in migrations/ to the database
+RUN_DB_TESTS=1 .venv/bin/python -m pytest -q tests/test_store_db.py   # real-database test (rolled back)
 ```
 
 ## Code layout
@@ -49,7 +51,8 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt   # one-time
 - No hand history file import
 - No multiway analysis
 - No tournaments, PLO, or mixed games
-- No auth, database, or mobile (saved hands live in browser storage)
+- No mobile
+- v2 adds auth and a database (Supabase): see "Accounts and storage" in `docs/poker-analyzer-decisions.md`
 - No scoring or grades
 
 ## Conventions
@@ -60,6 +63,14 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt   # one-time
 - `null` means unknown, a missing key means not applicable
 - The LLM never does arithmetic. The backend computes pot, to_call, pot odds, SPR and puts them in the prompt.
 - Filenames are kebab-case
+
+## Working with me
+
+- Talk in ASD-STE100 (Simplified Technical English): short sentences, active voice, simple words.
+- Lead with the result. Use short bullets.
+- For a lot of information, show a flow diagram, ASCII diagram, or graph first.
+- Use tables only for real side-by-side comparisons.
+- Code must be readable for a human: plain comments on each block, clear names, plain loops and `if` blocks, no dense one-liners.
 
 ## Build approach
 
